@@ -1,13 +1,19 @@
+import { lazy, Suspense } from 'react';
 import './index.css';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
-import Projects from './components/Projects';
-import Experience from './components/Experience';
-import Connect from './components/Connect';
-import Certifications from './components/Certifications';
-import BeyondPixels from './components/BeyondPixels';
-import Footer from './components/Footer';
 import CustomCursor from './components/CustomCursor';
+
+// Lazy-load heavy sections — they load only when needed
+const Projects      = lazy(() => import('./components/Projects'));
+const Experience    = lazy(() => import('./components/Experience'));
+const Certifications = lazy(() => import('./components/Certifications'));
+const BeyondPixels  = lazy(() => import('./components/BeyondPixels'));
+const Connect       = lazy(() => import('./components/Connect'));
+const Footer        = lazy(() => import('./components/Footer'));
+
+// Minimal fallback — invisible so the page feels instant
+const Fallback = () => <div style={{ minHeight: '200px' }} />;
 
 function App() {
   return (
@@ -17,17 +23,29 @@ function App() {
       <main>
         <Hero />
         <div className="gradient-line" />
-        <Projects />
+        <Suspense fallback={<Fallback />}>
+          <Projects />
+        </Suspense>
         <div className="gradient-line" />
-        <Experience />
+        <Suspense fallback={<Fallback />}>
+          <Experience />
+        </Suspense>
         <div className="gradient-line" />
-        <Certifications />
+        <Suspense fallback={<Fallback />}>
+          <Certifications />
+        </Suspense>
         <div className="gradient-line" />
-        <BeyondPixels />
+        <Suspense fallback={<Fallback />}>
+          <BeyondPixels />
+        </Suspense>
         <div className="gradient-line" />
-        <Connect />
+        <Suspense fallback={<Fallback />}>
+          <Connect />
+        </Suspense>
       </main>
-      <Footer />
+      <Suspense fallback={<Fallback />}>
+        <Footer />
+      </Suspense>
     </>
   );
 }

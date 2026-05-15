@@ -112,7 +112,7 @@ const ImageCard = ({ src, label, rotation, width = 160, height = 140, fit = 'cov
       position: 'relative',
     }}
   >
-    <img src={src} alt={label} draggable="false" style={{ width: '100%', height: '100%', objectFit: fit, opacity: 1, pointerEvents: 'none' }} />
+    <img src={src} alt={label} draggable="false" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: fit, opacity: 1, pointerEvents: 'none' }} />
     {label && (
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', fontSize: '11px', color: '#fff', fontFamily: 'Inter, sans-serif', textAlign: 'center' }}>
         {label}
