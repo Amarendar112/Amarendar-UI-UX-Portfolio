@@ -8,7 +8,7 @@ const certifications = [
     issuer: 'Google (Coursera)',
     date: 'Jan 2025',
     link: 'https://coursera.org/verify/U820VPSTMRHA',
-    image: '/google-ux-cert.png',
+    image: '/google-ux-cert.webp',
     aspectRatio: '1.414 / 1',
     color: '#4285F4'
   },
@@ -18,7 +18,7 @@ const certifications = [
     issuer: 'Codegnan IT Solutions',
     date: 'May 2026',
     link: 'https://cg-course-completion-certificates.s3.amazonaws.com/Course_completions/PFS-HYJ-038/CDH1788_portrait.png',
-    image: '/python-fullstack-cert.png',
+    image: '/python-fullstack-cert.webp',
     aspectRatio: '0.707 / 1', // Portrait
     color: '#E61E2A'
   },
@@ -28,7 +28,7 @@ const certifications = [
     issuer: 'Codegnan IT Solutions',
     date: 'May 2026',
     link: 'https://cg-course-completion-certificates.s3.amazonaws.com/Course_completions/PFS-HYJ-038/CDH1788_landscape.png',
-    image: '/python-fullstack-landscape.png',
+    image: '/python-fullstack-landscape.webp',
     aspectRatio: '1.414 / 1', // Landscape
     color: '#E61E2A'
   }

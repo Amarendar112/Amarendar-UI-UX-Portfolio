@@ -95,24 +95,23 @@ const Connect = () => {
           ))}
         </div>
         <div className="connect-visual">
-          <div style={{ 
-            width: '100%', 
-            height: '100%', 
-            borderRadius: '16px', 
-            overflow: 'hidden',
-            border: '1px solid var(--border)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-          }}>
-            <img 
-              src="/convocation.jpg" 
-              alt="Connect" 
-              style={{ 
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'cover',
-                display: 'block'
-              }} 
-            />
+          <div className="accent-gradient-frame">
+            <div className="accent-gradient-frame-inner">
+              <img 
+                src="/convocation.jpg" 
+                alt="Connect" 
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover',
+                  display: 'block'
+                }} 
+              />
+            </div>
+          </div>
+          <div className="frame-caption">
+            <h4 className="frame-caption__degree">MCA in Information Technology</h4>
+            <p className="frame-caption__university">Anurag University</p>
           </div>
         </div>
       </div>

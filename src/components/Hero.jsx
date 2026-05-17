@@ -6,11 +6,11 @@ import hoverEffect from 'hover-effect';
    Replace src: null with your image path when ready.
    ─────────────────────────────────────────────────────────────────── */
 const CARD_PHOTOS = [
-  { id: 1, src: '/amar_speaking.png', alt: 'Speaking at Event', color: '#1a1a2e' },
-  { id: 2, src: '/photo2.png', alt: 'Photo 2', color: '#0f2318' },
-  { id: 3, src: '/chargegrid_ai_hero.png', alt: 'ChargeGrid AI', color: '#1a0f2e' },
-  { id: 4, src: '/drone_intelligence_ecosystem/screen.png', alt: 'SkyGrid AI: Premium Food Delivery', color: '#2e1a0f' },
-  { id: 5, src: '/medirescue_ai/screen.png', alt: 'MediRescue AI: Emergency Response', color: '#0d1a1a' },
+  { id: 1, src: '/amar_speaking.webp', alt: 'Speaking at Event', color: '#1a1a2e' },
+  { id: 2, src: '/photo2.webp', alt: 'Photo 2', color: '#0f2318' },
+  { id: 3, src: '/chargegrid_ai_hero.webp', alt: 'ChargeGrid AI', color: '#1a0f2e' },
+  { id: 4, src: '/drone_intelligence_ecosystem/screen.webp', alt: 'SkyGrid AI: Premium Food Delivery', color: '#2e1a0f' },
+  { id: 5, src: '/medirescue_ai/screen.webp', alt: 'MediRescue AI: Emergency Response', color: '#0d1a1a' },
 ];
 
 /* Each card's initial scattered position & rotation — exactly like photos tossed on a surface */
@@ -161,7 +161,7 @@ const ScatteredCardsSection = () => {
             margin: 0,
           }}>
             Designing for real people and real impact. I've spent years
-            bridging the gap between user needs and business goals — crafting
+            bridging the gap between user needs and business goals, crafting
             digital experiences that feel intuitive and look stunning. Whether
             working on a startup's first product or refining complex
             design systems, my mission remains the same:{' '}
@@ -223,8 +223,8 @@ const Hero = () => {
     new hoverEffect({
       parent: containerRef.current,
       intensity: 0.3,
-      image1: '/base-mask.png',
-      image2: '/amar_full_face_hair.png',
+      image1: '/base-mask.webp',
+      image2: '/amar_full_face_hair.webp',
       displacementImage: '/fluid.jpg',
       imagesRatio: 1.25,
     });

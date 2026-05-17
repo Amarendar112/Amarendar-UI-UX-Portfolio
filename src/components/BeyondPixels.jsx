@@ -195,19 +195,19 @@ const BeyondPixels = () => {
 
       {/* TOP-LEFT: F1 passion */}
       <PositionedCard style={{ top: isMobile ? '3%' : '5%', left: isMobile ? '1%' : '1%' }} zIndex={10} onDragStart={handleFirstDrag}>
-        <ImageCard src="/f1_passion.png" label="F1 passion" rotation={-6} width={imgW} height={imgH} />
+        <ImageCard src="/f1_passion.webp" label="F1 passion" rotation={-6} width={imgW} height={imgH} />
       </PositionedCard>
 
       {/* LEFT-UPPER: UX Day */}
       <PositionedCard style={{ top: isMobile ? '26%' : '20%', left: isMobile ? '1%' : '4%' }} zIndex={11} onDragStart={handleFirstDrag}>
-        <ImageCard src="/ux_day.png" label="ux day" rotation={4}
+        <ImageCard src="/ux_day.webp" label="ux day" rotation={4}
           width={isSmall ? 88 : isMobile ? 105 : 138}
           height={isSmall ? 72 : isMobile ? 88 : 112} />
       </PositionedCard>
 
       {/* LEFT-MID: Frame boy illustration */}
       <PositionedCard style={{ top: '48%', left: isMobile ? '-2%' : '0%' }} zIndex={12} onDragStart={handleFirstDrag}>
-        <ImageCard src="/frame_boy_2.png" rotation={-5}
+        <ImageCard src="/frame_boy_2.webp" rotation={-5}
           width={isSmall ? 118 : isMobile ? 142 : 205}
           height={isSmall ? 118 : isMobile ? 142 : 205} fit="cover" />
       </PositionedCard>
@@ -244,13 +244,13 @@ const BeyondPixels = () => {
 
       {/* TOP-RIGHT: Hobbies */}
       <PositionedCard style={{ top: isMobile ? '26%' : '8%', right: isMobile ? '0%' : '0%' }} zIndex={17} onDragStart={handleFirstDrag}>
-        <ImageCard src="/hobbies.png" label="Hobbies" rotation={5}
+        <ImageCard src="/hobbies.webp" label="Hobbies" rotation={5}
           width={imgW + 22} height={imgH + 18} />
       </PositionedCard>
 
       {/* BOTTOM-CENTER: Speaking session */}
       <PositionedCard style={{ bottom: isMobile ? '2%' : '3%', left: '50%', marginLeft: isMobile ? `-${imgW/2}px` : `-${imgW/2}px` }} zIndex={18} onDragStart={handleFirstDrag}>
-        <ImageCard src="/amar_speaking.png" label="Speaking session" rotation={-3} width={imgW} height={imgH + 35} />
+        <ImageCard src="/amar_speaking.webp" label="Speaking session" rotation={-3} width={imgW} height={imgH + 35} />
       </PositionedCard>
 
       {/* BOTTOM-RIGHT: Anurag University */}

@@ -37,7 +37,7 @@ const experiences = [
     logo: <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '15px', letterSpacing: '1px', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase' }}>Apparel&Co.</span>,
     date: '2020 – 2021',
     role: 'Graphic & Shirt Designer',
-    description: 'Created stylish, trendy graphic and apparel designs. Developed a strong foundation in color theory, typography, and layout — skills that now inform every UI decision I make.'
+    description: 'Created stylish, trendy graphic and apparel designs. Developed a strong foundation in color theory, typography, and layout, skills that now inform every UI decision I make.'
   }
 ];
 const Experience = () => {
@@ -62,7 +62,7 @@ const Experience = () => {
         </div>
         <h2 className="section-title" style={{ marginBottom: '20px' }}>Designed for a smooth journey</h2>
         <p className="section-subtitle" style={{ maxWidth: '800px', margin: '0 auto clamp(40px, 8vh, 80px)', color: 'var(--text-secondary)' }}>
-          From idea to execution — every project is a story of problem-solving, creativity, and craft. I've spent years bridging the gap between user needs and business goals, defining clear interaction patterns, and <strong style={{ color: "white" }}>turning complex requirements into clean interfaces.</strong>
+          From idea to execution, every project is a story of problem-solving, creativity, and craft. I've spent years bridging the gap between user needs and business goals, defining clear interaction patterns, and <strong style={{ color: "white" }}>turning complex requirements into clean interfaces.</strong>
         </p>
 
         <div className="experience-cards-container" style={{ 

@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
-import trenzlyImg from '../assets/trenzly-preview.png';
-import joeSeraImg from '../assets/joe-sera-preview.png';
-import zomatoImg from '../assets/zomato-redesign-preview.png';
-import quickslicesImg from '../assets/foodooze-preview.png';
-import doctorUiImg from '../assets/doctor-ui-preview.png';
-import dengueImg from '../assets/dengue-detection-preview.png';
+import trenzlyImg from '../assets/trenzly-preview.webp';
+import joeSeraImg from '../assets/joe-sera-preview.webp';
+import zomatoImg from '../assets/zomato-redesign-preview.webp';
+import quickslicesImg from '../assets/foodooze-preview.webp';
+import doctorUiImg from '../assets/doctor-ui-preview.webp';
+import dengueImg from '../assets/dengue-detection-preview.webp';
 
 const projects = [
   {
@@ -21,9 +21,9 @@ const projects = [
   },
   {
     id: 'joe-sera',
-    title: 'Joe & Sera — Interior Design Studio',
+    title: 'Joe & Sera | Interior Design Studio',
     description:
-      'A premium website for an interior design studio. Crafted an immersive digital experience that feels premium and smooth — directly reflecting the studio\'s high-end brand.',
+      'A premium website for an interior design studio. Crafted an immersive digital experience that feels premium and smooth, directly reflecting the studio\'s high-end brand.',
     link: 'https://joeandsera.com/',
     linkLabel: 'View Website',
     image: joeSeraImg,
@@ -43,7 +43,7 @@ const projects = [
     id: 'quickslices-pizza-app',
     title: 'Quickslices Pizza App',
     description:
-      'Quickslice — Order fresh, hot pizza and get it delivered fast with just a few taps.',
+      'Quickslice: Order fresh, hot pizza and get it delivered fast with just a few taps.',
     link: 'https://www.behance.net/gallery/218576355/Food-delivery/modules/1245613437',
     linkLabel: 'View Design',
     image: quickslicesImg,
@@ -51,7 +51,7 @@ const projects = [
   },
   {
     id: 'doctor-ui',
-    title: 'Healthcare — Doctor UI',
+    title: 'Healthcare | Doctor UI',
     description:
       'Empowering healthcare with innovative and accessible interface design. The system prioritis trust and clarity to connect patients and doctors digitally.',
     link: 'https://www.behance.net/gallery/208451819/Empowering-Healthcare-Innovative-Doctor-UI-Design/modules/1184015719',
@@ -63,7 +63,7 @@ const projects = [
     id: 'zomato-redesign',
     title: 'Zomato Redesign',
     description:
-      'A complete UX redesign of the Zomato mobile app — reimagining the discovery and ordering flow to reduce friction and increase user delight at every touchpoint.',
+      'A complete UX redesign of the Zomato mobile app, reimagining the discovery and ordering flow to reduce friction and increase user delight at every touchpoint.',
     link: 'https://www.behance.net/gallery/244240063/Zomato-Redesign',
     linkLabel: 'View Design',
     image: zomatoImg,
