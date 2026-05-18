@@ -122,6 +122,136 @@ const ImageCard = ({ src, label, rotation, width = 160, height = 140, fit = 'cov
 );
 
 /* ─────────────────────────────────────────
+   Success Steps Card
+   ───────────────────────────────────────── */
+const SuccessStepsCard = ({ rotation, scale = 1 }) => (
+  <div
+    style={{
+      background: '#0a0a0c',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '20px',
+      padding: '24px 20px',
+      width: '210px',
+      height: '310px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '24px',
+      transform: `rotate(${rotation}deg) scale(${scale})`,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+      userSelect: 'none',
+      position: 'relative',
+      overflow: 'hidden',
+    }}
+  >
+    {/* Header */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 2 }}>
+      <h3 style={{
+        fontFamily: "'Outfit', sans-serif",
+        fontSize: '24px',
+        fontWeight: 700,
+        color: '#fff',
+        lineHeight: 1.1,
+        letterSpacing: '-0.5px'
+      }}>
+        3 steps for<br/>your success
+      </h3>
+    </div>
+
+    {/* List items */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', zIndex: 2 }}>
+      {[
+        'Build it',
+        'Launch it',
+        'Maintain it'
+      ].map((step, idx) => (
+        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            background: '#2b56f5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <span style={{
+            fontFamily: "'Outfit', sans-serif",
+            fontSize: '15px',
+            fontWeight: 600,
+            color: '#fff',
+            letterSpacing: '-0.2px'
+          }}>
+            {step}
+          </span>
+        </div>
+      ))}
+    </div>
+
+    {/* Premium Concentric Corner Curves */}
+    <div style={{
+      position: 'absolute',
+      bottom: '-35px',
+      right: '-35px',
+      width: '160px',
+      height: '160px',
+      zIndex: 1,
+      pointerEvents: 'none',
+      display: 'flex',
+      alignItems: 'flex-end',
+      justifyContent: 'flex-end'
+    }}>
+      <div style={{
+        width: '160px',
+        height: '160px',
+        borderTopLeftRadius: '80px',
+        background: 'rgba(43, 86, 245, 0.05)',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'flex-end',
+        padding: '16px 0 0 16px',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{
+          width: '124px',
+          height: '124px',
+          borderTopLeftRadius: '62px',
+          background: 'rgba(43, 86, 245, 0.08)',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'flex-end',
+          padding: '16px 0 0 16px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            width: '88px',
+            height: '88px',
+            borderTopLeftRadius: '44px',
+            background: 'rgba(43, 86, 245, 0.12)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'flex-end',
+            padding: '16px 0 0 16px',
+            boxSizing: 'border-box'
+          }}>
+            <div style={{
+              width: '52px',
+              height: '52px',
+              borderTopLeftRadius: '26px',
+              background: 'rgba(43, 86, 245, 0.18)'
+            }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ─────────────────────────────────────────
    Positioned Draggable Card
 ───────────────────────────────────────── */
 const PositionedCard = ({ children, style, zIndex, onDragStart }) => {
@@ -248,13 +378,18 @@ const BeyondPixels = () => {
           width={imgW + 22} height={imgH + 18} />
       </PositionedCard>
 
+      {/* MID-RIGHT: Success Steps */}
+      <PositionedCard style={{ top: isMobile ? '52%' : '44%', right: isMobile ? '1%' : '2%' }} zIndex={18} onDragStart={handleFirstDrag}>
+        <SuccessStepsCard rotation={4} scale={sp} />
+      </PositionedCard>
+
       {/* BOTTOM-CENTER: Speaking session */}
-      <PositionedCard style={{ bottom: isMobile ? '2%' : '3%', left: '50%', marginLeft: isMobile ? `-${imgW/2}px` : `-${imgW/2}px` }} zIndex={18} onDragStart={handleFirstDrag}>
+      <PositionedCard style={{ bottom: isMobile ? '2%' : '3%', left: '50%', marginLeft: isMobile ? `-${imgW/2}px` : `-${imgW/2}px` }} zIndex={19} onDragStart={handleFirstDrag}>
         <ImageCard src="/amar_speaking.webp" label="Speaking session" rotation={-3} width={imgW} height={imgH + 35} />
       </PositionedCard>
 
       {/* BOTTOM-RIGHT: Anurag University */}
-      <PositionedCard style={{ bottom: isMobile ? '2%' : '4%', right: isMobile ? '1%' : '3%' }} zIndex={19} onDragStart={handleFirstDrag}>
+      <PositionedCard style={{ bottom: isMobile ? '2%' : '4%', right: isMobile ? '1%' : '3%' }} zIndex={20} onDragStart={handleFirstDrag}>
         <ImageCard src="/anurag_university.jpeg" label="Anurag university" rotation={-8}
           width={imgW + 12} height={imgH + 12} />
       </PositionedCard>
@@ -265,7 +400,7 @@ const BeyondPixels = () => {
         {/* Soft radial backdrop behind text so cards don't obscure it */}
         <div style={{ position: 'absolute', width: isSmall ? '270px' : isMobile ? '330px' : '520px', height: isSmall ? '210px' : isMobile ? '250px' : '360px', background: 'radial-gradient(ellipse, rgba(8,8,8,0.9) 25%, transparent 75%)', pointerEvents: 'none' }} />
 
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           {/* "Connect on" cursive */}
           <div style={{ fontFamily: "'Dancing Script', 'Brush Script MT', cursive", fontSize: isSmall ? '20px' : isMobile ? '24px' : 'clamp(24px, 3.2vw, 36px)', color: 'rgba(255,255,255,0.78)', letterSpacing: '0.02em', marginBottom: '-6px', lineHeight: 1 }}>
             Connect on
@@ -293,13 +428,13 @@ const BeyondPixels = () => {
           )}
 
           {/* Subtitle */}
-          <p style={{ fontSize: isSmall ? '12px' : isMobile ? '13px' : 'clamp(13px, 1.4vw, 15px)', color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif', maxWidth: '360px', lineHeight: 1.6, marginBottom: '22px' }}>
+          <p style={{ fontSize: isSmall ? '12px' : isMobile ? '13px' : 'clamp(13px, 1.4vw, 15px)', color: 'rgba(255,255,255,0.45)', fontFamily: 'Inter, sans-serif', maxWidth: '360px', margin: '0 auto 22px', lineHeight: 1.6 }}>
             My digital sketchbook. A space for unfinished thoughts and late-night experiments.
           </p>
 
           {/* Follow me button */}
           <a
-            href="https://www.instagram.com/jaalthariamarendar"
+            href="https://www.instagram.com/_amarr_11_/?hl=en"
             target="_blank"
             rel="noopener noreferrer"
             style={{ pointerEvents: 'all', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: isSmall ? '10px 20px' : '12px 28px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)', color: '#fff', fontSize: isSmall ? '13px' : '14px', fontWeight: 600, fontFamily: "'Outfit', sans-serif", textDecoration: 'none', transition: 'all 0.3s cubic-bezier(0.4,0,0.2,1)' }}

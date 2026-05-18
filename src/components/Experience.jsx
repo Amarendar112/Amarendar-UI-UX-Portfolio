@@ -19,7 +19,7 @@ const experiences = [
     ),
     date: '2022 – 2023',
     role: 'Web Designer',
-    description: 'Built and designed full-featured agency websites and client projects. Developed a keen eye for conversion-focused layouts, clear visual hierarchy, and impactful brand storytelling across digital touchpoints.'
+    description: 'Built and designed a full-featured clothing brand website. Developed a keen eye for conversion-focused layouts, clear visual hierarchy, and impactful brand storytelling across digital touchpoints.'
   },
   {
     id: 'exp-3',
@@ -31,13 +31,6 @@ const experiences = [
     date: '2021 – 2022',
     role: 'Visual Designer',
     description: "Designed the complete brand identity and digital presence for a premium interior design studio. Crafted an immersive website experience that reflected the studio's high-end aesthetic and attracted their target clientele."
-  },
-  {
-    id: 'exp-4',
-    logo: <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '15px', letterSpacing: '1px', color: 'rgba(255,255,255,0.9)', textTransform: 'uppercase' }}>Apparel&Co.</span>,
-    date: '2020 – 2021',
-    role: 'Graphic & Shirt Designer',
-    description: 'Created stylish, trendy graphic and apparel designs. Developed a strong foundation in color theory, typography, and layout, skills that now inform every UI decision I make.'
   }
 ];
 const Experience = () => {
@@ -65,9 +58,26 @@ const Experience = () => {
           From idea to execution, every project is a story of problem-solving, creativity, and craft. I've spent years bridging the gap between user needs and business goals, defining clear interaction patterns, and <strong style={{ color: "white" }}>turning complex requirements into clean interfaces.</strong>
         </p>
 
-        <div className="experience-cards-container" style={{ 
+        <div className="experience-cards-container" style={isMobile ? {
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'stretch',
+            overflowX: 'auto',
+            width: '100vw',
+            marginLeft: 'calc(-50vw + 50%)',
+            marginRight: 'calc(-50vw + 50%)',
+            padding: '24px 40px 48px',
+            gap: '20px',
+            scrollSnapType: 'x mandatory',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
+            position: 'relative',
+            marginTop: '20px',
+         } : { 
             position: 'relative', 
-            height: isMobile ? '480px' : '420px', 
+            height: '420px', 
             width: '100%', 
             maxWidth: '1000px', 
             display: 'flex',
@@ -76,35 +86,26 @@ const Experience = () => {
             marginTop: '20px'
          }}>
           {experiences.map((exp, i) => {
-            const centerIndex = (totalCards - 1) / 2;
-            
-            // Handcrafted messy positions — natural scattered look
+            const cardWidth = isSmallMobile ? 280 : 320;
+            const cardHeight = isSmallMobile ? 320 : 360;
+
+            // Perfectly fanned, symmetrical offsets for exactly 3 cards on desktop
             const cardStyles = [
-              { rotation: -8,  xOff: -360, yOff: 30  },  // far left
-              { rotation: -4,  xOff: -185, yOff: 10  },  // mid left
-              { rotation:  1,  xOff:   0,  yOff: 0   },  // center
-              { rotation:  6,  xOff:  185, yOff: 20  },  // mid right
-              { rotation:  11, xOff:  360, yOff: 40  },  // far right
+              { rotation: -5, xOff: -200, yOff: 20  },  // Left fanned
+              { rotation:  0, xOff: 0,    yOff: 0   },  // Middle fanned
+              { rotation:  5, xOff: 200,  yOff: 20  },  // Right fanned
             ];
 
-            const mobileStyles = [
-                { rotation: -6, xOff: 0, yOff: -60 },
-                { rotation: -3, xOff: 0, yOff: -30 },
-                { rotation: 0, xOff: 0, yOff: 0 },
-                { rotation: 3, xOff: 0, yOff: 30 },
-                { rotation: 6, xOff: 0, yOff: 60 }
-            ];
-
-            const baseStyle = isMobile ? mobileStyles[i] : cardStyles[i];
+            const baseStyle = isMobile ? { rotation: 0, xOff: 0, yOff: 0 } : cardStyles[i];
             const { rotation, xOff, yOff } = baseStyle || { rotation: 0, xOff: 0, yOff: 0 };
-            const defaultZIndex = 50 - Math.abs(i - 2) * 10;
+            const defaultZIndex = 50 - Math.abs(i - 1) * 10; // Balanced around middle card (index 1)
 
             const isHovered = hoveredIndex === i;
             const activeRotation = hoveredIndex !== null ? (isHovered ? 0 : rotation * 1.15) : rotation;
-            const activeY = isHovered ? yOff - (isMobile ? 20 : 55) : yOff;
+            const activeY = isHovered ? yOff - (isMobile ? 10 : 55) : yOff;
             const activeX = xOff;
             const activeZ = isHovered ? 200 : defaultZIndex;
-            const activeScale = isHovered ? (isMobile ? 1.05 : 1.08) : 1;
+            const activeScale = isHovered ? (isMobile ? 1.03 : 1.08) : 1;
 
             return (
               <motion.div
@@ -121,9 +122,15 @@ const Experience = () => {
                 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 style={{
-                  position: 'absolute',
-                  width: isSmallMobile ? '280px' : '320px',
-                  height: isSmallMobile ? '320px' : '360px', 
+                  position: isMobile ? 'relative' : 'absolute',
+                  left: isMobile ? 'auto' : '50%',
+                  top: isMobile ? 'auto' : '50%',
+                  marginLeft: isMobile ? '0' : `-${cardWidth / 2}px`,
+                  marginTop: isMobile ? '0' : `-${cardHeight / 2}px`,
+                  width: `${cardWidth}px`,
+                  height: `${cardHeight}px`,
+                  flexShrink: isMobile ? 0 : undefined,
+                  scrollSnapAlign: isMobile ? 'center' : undefined,
                   background: 'linear-gradient(135deg, #1f1f1f, #141414)',
                   border: '1px solid rgba(255,255,255,0.05)',
                   borderRadius: '16px',
@@ -135,13 +142,8 @@ const Experience = () => {
                   cursor: 'pointer',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: isSmallMobile ? '16px' : '24px', height: '32px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    {exp.logo}
-                  </div>
-                  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: '500', marginTop: '4px' }}>
-                    {exp.date}
-                  </span>
+                <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: isSmallMobile ? '16px' : '24px', height: '32px' }}>
+                  {exp.logo}
                 </div>
                 
                 <h3 style={{ fontFamily: 'var(--font-display)', fontSize: isSmallMobile ? '18px' : '20px', fontWeight: '700', color: '#fff', marginBottom: '14px', letterSpacing: '-0.3px' }}>

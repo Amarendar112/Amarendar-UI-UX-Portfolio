@@ -988,3 +988,7 @@ img {
   .connect-action-btns { flex-direction: column; width: 100%; align-items: stretch; }
   .connect-btn { width: 100%; text-align: center; }
 }
+
+.experience-cards-container::-webkit-scrollbar {
+  display: none;
+}
