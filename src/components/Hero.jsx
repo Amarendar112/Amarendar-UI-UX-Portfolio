@@ -202,9 +202,19 @@ const ScatteredCardsSection = () => {
 /* ─── Main Hero ─── */
 const Hero = () => {
   const [isHovering, setIsHovering] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const [role, setRole] = useState("UI / UX Designer");
   const { x, y } = useMousePosition();
   const containerRef = useRef(null);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   useEffect(() => {
     const roles = ["UI / UX Designer", "Frontend developer", "Product Designer"];
@@ -278,12 +288,14 @@ const Hero = () => {
         }}>
           <div
             ref={containerRef}
-            onMouseEnter={() => setIsHovering(true)}
+            onMouseEnter={() => { setIsHovering(true); setRevealed(true); }}
             onMouseLeave={() => setIsHovering(false)}
+            onTouchStart={() => { setIsHovering(true); setRevealed(true); }}
+            onTouchEnd={() => setIsHovering(false)}
             style={{
               height: 'clamp(60vh, 85vh, 95vh)',
               width: 'calc(clamp(60vh, 85vh, 95vh) / 1.25)',
-              maxWidth: '90vw', position: 'relative', cursor: 'none',
+              maxWidth: '90vw', position: 'relative', cursor: isMobile ? 'default' : 'none',
             }}
           />
 
@@ -293,15 +305,17 @@ const Hero = () => {
             border: '1.5px solid rgba(255,255,255,0.35)', borderRadius: '6px',
             padding: '8px 14px', display: 'flex', alignItems: 'center',
             gap: '8px', pointerEvents: 'none',
+            opacity: revealed ? 0 : 1,
+            transition: 'opacity 0.4s ease, transform 0.4s ease',
           }}>
             <span style={{
               fontSize: '13px', fontFamily: "'Outfit', monospace",
               color: 'rgba(255,255,255,0.85)', letterSpacing: '0.04em', fontWeight: 500,
-            }}>[ Hover to reveal ]</span>
+            }}>{isMobile ? '[ Tap to reveal ]' : '[ Hover to reveal ]'}</span>
           </div>
         </div>
 
-        <MaskCursorRing x={x} y={y} isHovering={isHovering} />
+        {!isMobile && <MaskCursorRing x={x} y={y} isHovering={isHovering} />}
 
         {/* Scroll hint */}
         <div style={{
