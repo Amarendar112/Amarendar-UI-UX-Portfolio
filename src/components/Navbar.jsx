@@ -35,7 +35,7 @@ const Navbar = () => {
       </div>
       <a
         id="nav-resume"
-        href="https://framerusercontent.com/assets/ah0rzfej38JQeSaVadYmiQjOg.pdf"
+        href="/uiuxresume.pdf"
         target="_blank"
         rel="noopener noreferrer"
         className="navbar__resume"
