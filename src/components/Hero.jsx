@@ -15,11 +15,11 @@ const CARD_PHOTOS = [
 
 /* Each card's initial scattered position & rotation — exactly like photos tossed on a surface */
 const CARD_INITIAL = [
-  { x: -160, y: 50, rotate: -26, zIndex: 1 },
-  { x: -80, y: 15, rotate: -12, zIndex: 2 },
-  { x: 0, y: 0, rotate: 4, zIndex: 5 },
-  { x: 80, y: 20, rotate: 14, zIndex: 3 },
-  { x: 160, y: 50, rotate: 28, zIndex: 4 },
+  { x: -160, y: 20, rotate: -26, zIndex: 1 },
+  { x: -80, y: -15, rotate: -12, zIndex: 2 },
+  { x: 0, y: -30, rotate: 4, zIndex: 5 },
+  { x: 80, y: -10, rotate: 14, zIndex: 3 },
+  { x: 160, y: 20, rotate: 28, zIndex: 4 },
 ];
 
 /* ─── Single draggable scattered photo card ─── */
