@@ -61,14 +61,12 @@ const Experience = () => {
 
         <div className="experience-cards-container" style={isMobile ? {
             position: 'relative', 
-            height: isSmallMobile ? '360px' : '420px', 
             width: '100%', 
-            maxWidth: '480px', 
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
             alignItems: 'center',
+            padding: '24px 20px 60px',
             marginTop: '20px',
-            overflow: 'visible',
          } : { 
             position: 'relative', 
             height: '420px', 
@@ -80,12 +78,8 @@ const Experience = () => {
             marginTop: '20px'
          }}>
           {experiences.map((exp, i) => {
-            const cardWidth = isMobile 
-              ? (isSmallMobile ? 260 : 300) 
-              : (isSmallMobile ? 280 : 320);
-            const cardHeight = isMobile 
-              ? (isSmallMobile ? 240 : 270) 
-              : (isSmallMobile ? 320 : 360);
+            const cardWidth = isSmallMobile ? 280 : 320;
+            const cardHeight = isSmallMobile ? 320 : 360;
 
             // Symmetrical offsets for exactly 3 cards
             const desktopStyles = [
@@ -94,22 +88,19 @@ const Experience = () => {
               { rotation:  5, xOff: 200,  yOff: 20  },  // Right fanned
             ];
 
-            const mobileStyles = [
-              { rotation: -6, xOff: -8,  yOff: isSmallMobile ? -50 : -60 }, // Top overlapping card
-              { rotation: 3,  xOff: 4,   yOff: 0 },                         // Middle card
-              { rotation: -3, xOff: -4,  yOff: isSmallMobile ? 50 : 60 },   // Bottom overlapping card
-            ];
+            const mobileRotations = [-2.5, 2, -1.5];
+            const rotation = isMobile ? mobileRotations[i] : desktopStyles[i].rotation;
+            const xOff = isMobile ? 0 : desktopStyles[i].xOff;
+            const yOff = isMobile ? 0 : desktopStyles[i].yOff;
 
-            const baseStyle = isMobile ? mobileStyles[i] : desktopStyles[i];
-            const { rotation, xOff, yOff } = baseStyle || { rotation: 0, xOff: 0, yOff: 0 };
-            const defaultZIndex = 50 - Math.abs(i - 1) * 10; // Balanced around middle card (index 1)
+            const defaultZIndex = isMobile ? (i + 1) : (50 - Math.abs(i - 1) * 10);
 
             const isActive = isMobile ? (activeCardIndex === i) : (hoveredIndex === i);
             const activeRotation = isActive ? 0 : rotation;
-            const activeY = isActive ? yOff : yOff;
+            const activeY = isActive ? (isMobile ? -15 : yOff - 55) : (isMobile ? 0 : yOff);
             const activeX = xOff;
             const activeZ = isActive ? 200 : defaultZIndex;
-            const activeScale = isActive ? (isMobile ? 1.05 : 1.08) : 1;
+            const activeScale = isActive ? (isMobile ? 1.04 : 1.08) : 1;
 
             return (
               <motion.div
@@ -127,13 +118,16 @@ const Experience = () => {
                 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 style={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  marginLeft: `-${cardWidth / 2}px`,
-                  marginTop: `-${cardHeight / 2}px`,
-                  width: `${cardWidth}px`,
-                  height: `${cardHeight}px`,
+                  position: isMobile ? 'relative' : 'absolute',
+                  left: isMobile ? 'auto' : '50%',
+                  top: isMobile ? 'auto' : '50%',
+                  marginLeft: isMobile ? '0' : `-${cardWidth / 2}px`,
+                  marginTop: isMobile 
+                    ? (i === 0 ? '0px' : (isSmallMobile ? '-75px' : '-90px')) 
+                    : `-${cardHeight / 2}px`,
+                  width: isMobile ? '100%' : `${cardWidth}px`,
+                  maxWidth: isMobile ? '340px' : undefined,
+                  height: isMobile ? 'auto' : `${cardHeight}px`,
                   background: 'linear-gradient(135deg, #1f1f1f, #141414)',
                   border: '1px solid rgba(255,255,255,0.05)',
                   borderRadius: '16px',
@@ -142,8 +136,8 @@ const Experience = () => {
                   flexDirection: 'column',
                   textAlign: 'left',
                   boxShadow: isActive
-                    ? '0 40px 80px -15px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1)'
-                    : '0 20px 40px -15px rgba(0,0,0,0.6)',
+                    ? '0 30px 60px -15px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.1)'
+                    : '0 15px 30px -10px rgba(0,0,0,0.6)',
                   cursor: 'pointer',
                   willChange: 'transform',
                 }}
