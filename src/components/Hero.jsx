@@ -138,7 +138,7 @@ const ScatteredCardsSection = () => {
         background: '#000',
         position: 'relative',
         zIndex: 5,
-        padding: isMobile ? '40px 0 80px' : '80px 0 160px'
+        padding: isMobile ? '30px 0 60px' : '80px 0 160px'
       }}
     >
       <div style={{
@@ -178,13 +178,13 @@ const ScatteredCardsSection = () => {
         <div style={{
           flex: '1 1 420px',
           position: 'relative',
-          height: isSmallMobile ? '280px' : isMobile ? '340px' : '420px',
+          height: isSmallMobile ? '150px' : isMobile ? '180px' : '420px',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'visible',
-          marginTop: isSmallMobile ? '30px' : isMobile ? '40px' : '0'
+          marginTop: isSmallMobile ? '-20px' : isMobile ? '-30px' : '0'
         }}>
           {/* Cards scattered around center */}
           {CARD_PHOTOS.map((photo, i) => (
