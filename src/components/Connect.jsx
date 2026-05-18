@@ -103,13 +103,13 @@ const Connect = () => {
             </svg>
             WhatsApp
           </a>
-          <a href="https://github.com/jaalthariamarendar" target="_blank" rel="noreferrer" className="connect-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <a href="https://github.com/Amarendar112" target="_blank" rel="noreferrer" className="connect-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.166 6.84 9.49.5.09.68-.22.68-.48v-1.71c-2.78.61-3.37-1.34-3.37-1.34-.45-1.15-1.1-1.46-1.1-1.46-.9-.61.07-.6.07-.6 1 .07 1.53 1.02 1.53 1.02.9 1.53 2.36 1.09 2.94.84.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.95 0-1.09.39-1.98 1.02-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.76 1.02a9.55 9.55 0 012.5-.34c.85.004 1.71.115 2.5.34 1.92-1.29 2.76-1.02 2.76-1.02.55 1.38.2 2.4.1 2.65.63.7 1.02 1.59 1.02 2.68 0 3.85-2.34 4.7-4.58 4.95.36.31.68.92.68 1.86v2.76c0 .26.18.58.68.48A10.01 10.01 0 0022 12c0-5.52-4.48-10-10-10z" />
             </svg>
             GitHub
           </a>
-          <a href="https://behance.net/jaalthariamarendar" target="_blank" rel="noreferrer" className="connect-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <a href="https://www.behance.net/amarendarjaalthari" target="_blank" rel="noreferrer" className="connect-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1769FF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 6h20v12H2z" />
               <path d="M22 6l-10 7L2 6" />
