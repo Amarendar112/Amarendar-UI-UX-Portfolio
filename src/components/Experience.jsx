@@ -60,19 +60,11 @@ const Experience = () => {
 
         <div className="experience-cards-container" style={isMobile ? {
             display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'flex-start',
-            alignItems: 'stretch',
-            overflowX: 'auto',
-            width: '100vw',
-            marginLeft: 'calc(-50vw + 50%)',
-            marginRight: 'calc(-50vw + 50%)',
-            padding: '24px 40px 48px',
-            gap: '20px',
-            scrollSnapType: 'x mandatory',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+            padding: '24px 20px',
+            gap: '24px',
             position: 'relative',
             marginTop: '20px',
          } : { 
@@ -88,25 +80,25 @@ const Experience = () => {
           {experiences.map((exp, i) => {
             const cardWidth = isSmallMobile ? 280 : 320;
             const cardHeight = isSmallMobile ? 320 : 360;
-
+ 
             // Perfectly fanned, symmetrical offsets for exactly 3 cards on desktop
             const cardStyles = [
               { rotation: -5, xOff: -200, yOff: 20  },  // Left fanned
               { rotation:  0, xOff: 0,    yOff: 0   },  // Middle fanned
               { rotation:  5, xOff: 200,  yOff: 20  },  // Right fanned
             ];
-
-            const baseStyle = isMobile ? { rotation: 0, xOff: 0, yOff: 0 } : cardStyles[i];
+ 
+            const baseStyle = isMobile ? { rotation: i % 2 === 0 ? -1.5 : 1.5, xOff: 0, yOff: 0 } : cardStyles[i];
             const { rotation, xOff, yOff } = baseStyle || { rotation: 0, xOff: 0, yOff: 0 };
             const defaultZIndex = 50 - Math.abs(i - 1) * 10; // Balanced around middle card (index 1)
-
+ 
             const isHovered = hoveredIndex === i;
             const activeRotation = hoveredIndex !== null ? (isHovered ? 0 : rotation * 1.15) : rotation;
-            const activeY = isHovered ? yOff - (isMobile ? 10 : 55) : yOff;
+            const activeY = isHovered ? yOff - (isMobile ? 5 : 55) : yOff;
             const activeX = xOff;
             const activeZ = isHovered ? 200 : defaultZIndex;
-            const activeScale = isHovered ? (isMobile ? 1.03 : 1.08) : 1;
-
+            const activeScale = isHovered ? (isMobile ? 1.02 : 1.08) : 1;
+ 
             return (
               <motion.div
                 key={exp.id}
@@ -127,10 +119,11 @@ const Experience = () => {
                   top: isMobile ? 'auto' : '50%',
                   marginLeft: isMobile ? '0' : `-${cardWidth / 2}px`,
                   marginTop: isMobile ? '0' : `-${cardHeight / 2}px`,
-                  width: `${cardWidth}px`,
-                  height: `${cardHeight}px`,
+                  width: isMobile ? '100%' : `${cardWidth}px`,
+                  maxWidth: isMobile ? '350px' : undefined,
+                  height: isMobile ? 'auto' : `${cardHeight}px`,
+                  minHeight: isMobile ? '200px' : undefined,
                   flexShrink: isMobile ? 0 : undefined,
-                  scrollSnapAlign: isMobile ? 'center' : undefined,
                   background: 'linear-gradient(135deg, #1f1f1f, #141414)',
                   border: '1px solid rgba(255,255,255,0.05)',
                   borderRadius: '16px',
