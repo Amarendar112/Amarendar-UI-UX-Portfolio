@@ -35,6 +35,7 @@ const experiences = [
 ];
 const Experience = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [activeCardIndex, setActiveCardIndex] = useState(1); // Default to middle card
   const totalCards = experiences.length;
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
@@ -59,14 +60,15 @@ const Experience = () => {
         </p>
 
         <div className="experience-cards-container" style={isMobile ? {
+            position: 'relative', 
+            height: isSmallMobile ? '360px' : '420px', 
+            width: '100%', 
+            maxWidth: '480px', 
             display: 'flex',
-            flexDirection: 'column',
+            justifyContent: 'center',
             alignItems: 'center',
-            width: '100%',
-            padding: '24px 20px',
-            gap: '24px',
-            position: 'relative',
             marginTop: '20px',
+            overflow: 'visible',
          } : { 
             position: 'relative', 
             height: '420px', 
@@ -78,33 +80,44 @@ const Experience = () => {
             marginTop: '20px'
          }}>
           {experiences.map((exp, i) => {
-            const cardWidth = isSmallMobile ? 280 : 320;
-            const cardHeight = isSmallMobile ? 320 : 360;
- 
-            // Perfectly fanned, symmetrical offsets for exactly 3 cards on desktop
-            const cardStyles = [
+            const cardWidth = isMobile 
+              ? (isSmallMobile ? 260 : 300) 
+              : (isSmallMobile ? 280 : 320);
+            const cardHeight = isMobile 
+              ? (isSmallMobile ? 240 : 270) 
+              : (isSmallMobile ? 320 : 360);
+
+            // Symmetrical offsets for exactly 3 cards
+            const desktopStyles = [
               { rotation: -5, xOff: -200, yOff: 20  },  // Left fanned
               { rotation:  0, xOff: 0,    yOff: 0   },  // Middle fanned
               { rotation:  5, xOff: 200,  yOff: 20  },  // Right fanned
             ];
- 
-            const baseStyle = isMobile ? { rotation: i % 2 === 0 ? -1.5 : 1.5, xOff: 0, yOff: 0 } : cardStyles[i];
+
+            const mobileStyles = [
+              { rotation: -6, xOff: -8,  yOff: isSmallMobile ? -50 : -60 }, // Top overlapping card
+              { rotation: 3,  xOff: 4,   yOff: 0 },                         // Middle card
+              { rotation: -3, xOff: -4,  yOff: isSmallMobile ? 50 : 60 },   // Bottom overlapping card
+            ];
+
+            const baseStyle = isMobile ? mobileStyles[i] : desktopStyles[i];
             const { rotation, xOff, yOff } = baseStyle || { rotation: 0, xOff: 0, yOff: 0 };
             const defaultZIndex = 50 - Math.abs(i - 1) * 10; // Balanced around middle card (index 1)
- 
-            const isHovered = hoveredIndex === i;
-            const activeRotation = hoveredIndex !== null ? (isHovered ? 0 : rotation * 1.15) : rotation;
-            const activeY = isHovered ? yOff - (isMobile ? 5 : 55) : yOff;
+
+            const isActive = isMobile ? (activeCardIndex === i) : (hoveredIndex === i);
+            const activeRotation = isActive ? 0 : rotation;
+            const activeY = isActive ? yOff : yOff;
             const activeX = xOff;
-            const activeZ = isHovered ? 200 : defaultZIndex;
-            const activeScale = isHovered ? (isMobile ? 1.02 : 1.08) : 1;
- 
+            const activeZ = isActive ? 200 : defaultZIndex;
+            const activeScale = isActive ? (isMobile ? 1.05 : 1.08) : 1;
+
             return (
               <motion.div
                 key={exp.id}
                 className="journey-card"
-                onHoverStart={() => setHoveredIndex(i)}
-                onHoverEnd={() => setHoveredIndex(null)}
+                onHoverStart={() => { if (!isMobile) setHoveredIndex(i); }}
+                onHoverEnd={() => { if (!isMobile) setHoveredIndex(null); }}
+                onClick={() => { if (isMobile) setActiveCardIndex(i); }}
                 animate={{
                   rotate: activeRotation,
                   x: activeX,
@@ -114,16 +127,13 @@ const Experience = () => {
                 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 style={{
-                  position: isMobile ? 'relative' : 'absolute',
-                  left: isMobile ? 'auto' : '50%',
-                  top: isMobile ? 'auto' : '50%',
-                  marginLeft: isMobile ? '0' : `-${cardWidth / 2}px`,
-                  marginTop: isMobile ? '0' : `-${cardHeight / 2}px`,
-                  width: isMobile ? '100%' : `${cardWidth}px`,
-                  maxWidth: isMobile ? '350px' : undefined,
-                  height: isMobile ? 'auto' : `${cardHeight}px`,
-                  minHeight: isMobile ? '200px' : undefined,
-                  flexShrink: isMobile ? 0 : undefined,
+                  position: 'absolute',
+                  left: '50%',
+                  top: '50%',
+                  marginLeft: `-${cardWidth / 2}px`,
+                  marginTop: `-${cardHeight / 2}px`,
+                  width: `${cardWidth}px`,
+                  height: `${cardHeight}px`,
                   background: 'linear-gradient(135deg, #1f1f1f, #141414)',
                   border: '1px solid rgba(255,255,255,0.05)',
                   borderRadius: '16px',
@@ -131,8 +141,11 @@ const Experience = () => {
                   display: 'flex',
                   flexDirection: 'column',
                   textAlign: 'left',
-                  boxShadow: '0 30px 60px -15px rgba(0,0,0,0.7)',
+                  boxShadow: isActive
+                    ? '0 40px 80px -15px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1)'
+                    : '0 20px 40px -15px rgba(0,0,0,0.6)',
                   cursor: 'pointer',
+                  willChange: 'transform',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: isSmallMobile ? '16px' : '24px', height: '32px' }}>
