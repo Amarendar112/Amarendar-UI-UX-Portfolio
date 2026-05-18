@@ -15,11 +15,11 @@ const CARD_PHOTOS = [
 
 /* Each card's initial scattered position & rotation — exactly like photos tossed on a surface */
 const CARD_INITIAL = [
-  { x: -220, y: 60, rotate: -38, zIndex: 1 },
-  { x: -110, y: 20, rotate: -18, zIndex: 2 },
-  { x: 0, y: 0, rotate: 5, zIndex: 5 },
-  { x: 120, y: 30, rotate: 20, zIndex: 3 },
-  { x: 200, y: 70, rotate: 42, zIndex: 4 },
+  { x: -160, y: 50, rotate: -26, zIndex: 1 },
+  { x: -80, y: 15, rotate: -12, zIndex: 2 },
+  { x: 0, y: 0, rotate: 4, zIndex: 5 },
+  { x: 80, y: 20, rotate: 14, zIndex: 3 },
+  { x: 160, y: 50, rotate: 28, zIndex: 4 },
 ];
 
 /* ─── Single draggable scattered photo card ─── */
@@ -184,7 +184,7 @@ const ScatteredCardsSection = () => {
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'visible',
-          marginTop: isSmallMobile ? '-20px' : isMobile ? '-30px' : '0'
+          marginTop: isSmallMobile ? '-40px' : isMobile ? '-50px' : '0'
         }}>
           {/* Cards scattered around center */}
           {CARD_PHOTOS.map((photo, i) => (
