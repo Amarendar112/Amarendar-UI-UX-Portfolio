@@ -23,9 +23,12 @@ const CARD_INITIAL = [
 ];
 
 /* ─── Single draggable scattered photo card ─── */
-const ScatterCard = ({ photo, initial, index, isInView }) => {
+const ScatterCard = ({ photo, initial, index, isInView, isMobile, isSmallMobile }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [zIndex, setZIndex] = useState(initial.zIndex);
+
+  const cardWidth = isSmallMobile ? 130 : isMobile ? 160 : 220;
+  const cardHeight = isSmallMobile ? 180 : isMobile ? 220 : 300;
 
   return (
     <motion.div
@@ -52,11 +55,11 @@ const ScatterCard = ({ photo, initial, index, isInView }) => {
         position: 'absolute',
         top: '50%',
         left: '50%',
-        marginTop: '-150px',
-        marginLeft: '-110px',
-        width: '220px',
-        height: '300px',
-        borderRadius: '22px',
+        marginTop: `${-cardHeight / 2}px`,
+        marginLeft: `${-cardWidth / 2}px`,
+        width: `${cardWidth}px`,
+        height: `${cardHeight}px`,
+        borderRadius: isMobile ? '14px' : '22px',
         overflow: 'hidden',
         border: '1px solid rgba(255,255,255,0.1)',
         boxShadow: isDragging
@@ -123,8 +126,8 @@ const ScatteredCardsSection = () => {
   // Scale positions for mobile
   const responsiveInitial = CARD_INITIAL.map(pos => ({
     ...pos,
-    x: isSmallMobile ? pos.x * 0.4 : isMobile ? pos.x * 0.7 : pos.x,
-    y: isSmallMobile ? pos.y * 0.4 : isMobile ? pos.y * 0.7 : pos.y,
+    x: isSmallMobile ? pos.x * 0.35 : isMobile ? pos.x * 0.5 : pos.x,
+    y: isSmallMobile ? pos.y * 0.35 : isMobile ? pos.y * 0.5 : pos.y,
   }));
 
   return (
@@ -191,6 +194,8 @@ const ScatteredCardsSection = () => {
               initial={responsiveInitial[i]}
               index={i}
               isInView={isInView}
+              isMobile={isMobile}
+              isSmallMobile={isSmallMobile}
             />
           ))}
         </div>
