@@ -184,7 +184,7 @@ const ScatteredCardsSection = () => {
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'visible',
-          marginTop: isSmallMobile ? '120px' : isMobile ? '140px' : '0'
+          marginTop: isSmallMobile ? '30px' : isMobile ? '40px' : '0'
         }}>
           {/* Cards scattered around center */}
           {CARD_PHOTOS.map((photo, i) => (
