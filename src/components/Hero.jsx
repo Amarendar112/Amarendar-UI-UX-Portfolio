@@ -213,6 +213,9 @@ const Hero = () => {
   const containerRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
+  const isRevealedMobileRef = useRef(false);
+  const allowMouseLeaveRef = useRef(false);
+
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
@@ -220,6 +223,57 @@ const Hero = () => {
   }, []);
 
   const isMobile = windowWidth < 768;
+
+  // Persistent Mobile Tap Interception
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const handleMouseLeaveEarly = (e) => {
+      if (windowWidth < 768) {
+        if (!allowMouseLeaveRef.current) {
+          // Block browser's automatic touch hover-clearance from resetting the canvas
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      }
+    };
+
+    containerRef.current.addEventListener('mouseleave', handleMouseLeaveEarly, { capture: true });
+    containerRef.current.addEventListener('mouseout', handleMouseLeaveEarly, { capture: true });
+
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.removeEventListener('mouseleave', handleMouseLeaveEarly, { capture: true });
+        containerRef.current.removeEventListener('mouseout', handleMouseLeaveEarly, { capture: true });
+      }
+    };
+  }, [windowWidth]);
+
+  const handleMobileClick = () => {
+    if (windowWidth >= 768) return;
+
+    const nextState = !isRevealedMobileRef.current;
+    isRevealedMobileRef.current = nextState;
+    setRevealed(true); // Hide the "[ Tap to reveal ]" tooltip
+
+    if (nextState) {
+      // Transition to full face (reveal)
+      const enterEvent = new MouseEvent('mouseenter', { bubbles: true });
+      const overEvent = new MouseEvent('mouseover', { bubbles: true });
+      containerRef.current.dispatchEvent(enterEvent);
+      containerRef.current.dispatchEvent(overEvent);
+    } else {
+      // Transition back to mask (hide)
+      allowMouseLeaveRef.current = true;
+      const leaveEvent = new MouseEvent('mouseleave', { bubbles: true });
+      const outEvent = new MouseEvent('mouseout', { bubbles: true });
+      containerRef.current.dispatchEvent(leaveEvent);
+      containerRef.current.dispatchEvent(outEvent);
+      setTimeout(() => {
+        allowMouseLeaveRef.current = false;
+      }, 0);
+    }
+  };
 
   useEffect(() => {
     const roles = ["UI / UX Designer", "Frontend developer", "Product Designer"];
@@ -295,8 +349,7 @@ const Hero = () => {
             ref={containerRef}
             onMouseEnter={() => { setIsHovering(true); setRevealed(true); }}
             onMouseLeave={() => setIsHovering(false)}
-            onTouchStart={() => { setIsHovering(true); setRevealed(true); }}
-            onTouchEnd={() => setIsHovering(false)}
+            onClick={handleMobileClick}
             style={{
               height: 'clamp(60vh, 85vh, 95vh)',
               width: 'calc(clamp(60vh, 85vh, 95vh) / 1.25)',

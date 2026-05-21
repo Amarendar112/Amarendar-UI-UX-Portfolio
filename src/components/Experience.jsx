@@ -64,7 +64,7 @@ const Experience = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '24px 20px 60px',
+            padding: '24px 20px 140px',
             marginTop: '20px',
             transformStyle: 'preserve-3d',
          } : { 
@@ -96,10 +96,27 @@ const Experience = () => {
 
             const defaultZIndex = isMobile ? (experiences.length - i) : (50 - Math.abs(i - 1) * 10);
 
+            // Calculate dynamic mobile Y-translation to spread cards apart when hovered/active
+            let mobileY = 0;
+            if (isMobile) {
+              const active = activeCardIndex;
+              const spacing = isSmallMobile ? 70 : 85;
+              if (i < active) {
+                // Cards above the active card shift UP
+                mobileY = (i - active) * spacing;
+              } else if (i > active) {
+                // Cards below the active card shift DOWN
+                mobileY = (i - active) * spacing + 30;
+              } else {
+                // Active card is slightly lifted
+                mobileY = -5;
+              }
+            }
+
             const isActive = isMobile ? (activeCardIndex === i) : (hoveredIndex === i);
             const activeRotation = isActive ? 0 : rotation;
             
-            const activeY = isMobile ? 0 : (isActive ? yOff - 55 : yOff);
+            const activeY = isMobile ? mobileY : (isActive ? yOff - 55 : yOff);
             const activeX = xOff;
             const activeZ = isActive ? (isMobile ? 10 : 200) : defaultZIndex;
             const activeScale = isMobile ? (isActive ? 1.02 : 0.96) : (isActive ? 1.08 : 1);
@@ -109,8 +126,13 @@ const Experience = () => {
               <motion.div
                 key={exp.id}
                 className="journey-card"
-                onHoverStart={() => { if (!isMobile) setHoveredIndex(i); }}
-                onHoverEnd={() => { if (!isMobile) setHoveredIndex(null); }}
+                onHoverStart={() => { 
+                  setHoveredIndex(i); 
+                  if (isMobile) setActiveCardIndex(i); 
+                }}
+                onHoverEnd={() => { 
+                  setHoveredIndex(null); 
+                }}
                 onClick={() => { if (isMobile) setActiveCardIndex(i); }}
                 animate={{
                   rotate: activeRotation,
