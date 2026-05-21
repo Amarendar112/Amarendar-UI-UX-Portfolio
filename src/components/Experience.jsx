@@ -35,8 +35,6 @@ const experiences = [
 ];
 const Experience = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const [activeCardIndex, setActiveCardIndex] = useState(1); // Default to middle card
-  const totalCards = experiences.length;
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   useEffect(() => {
@@ -90,33 +88,20 @@ const Experience = () => {
               { rotation:  5, xOff: 200,  yOff: 20  },  // Right fanned
             ];
 
-            const mobileRotations = [-2.5, 2, -1.5];
+            const mobileRotations = [4.5, -3, 3.5];
             const rotation = isMobile ? mobileRotations[i] : desktopStyles[i].rotation;
             const xOff = isMobile ? 0 : desktopStyles[i].xOff;
             const yOff = isMobile ? 0 : desktopStyles[i].yOff;
 
-            const defaultZIndex = isMobile ? (i + 1) : (50 - Math.abs(i - 1) * 10);
+            const defaultZIndex = isMobile ? (experiences.length - i) : (50 - Math.abs(i - 1) * 10);
 
-            const isActive = isMobile ? (activeCardIndex === i) : (hoveredIndex === i);
+            const isActive = isMobile ? false : (hoveredIndex === i);
             const activeRotation = isActive ? 0 : rotation;
             
-            const overlapAmount = isSmallMobile ? 75 : 90;
-            let activeY;
-            if (isMobile) {
-              if (i === activeCardIndex) {
-                activeY = -25;
-              } else if (i > activeCardIndex) {
-                activeY = overlapAmount + 15;
-              } else {
-                activeY = 0;
-              }
-            } else {
-              activeY = isActive ? yOff - 55 : yOff;
-            }
-            
+            const activeY = isMobile ? 0 : (isActive ? yOff - 55 : yOff);
             const activeX = xOff;
             const activeZ = isActive ? 200 : defaultZIndex;
-            const activeScale = isActive ? (isMobile ? 1.06 : 1.08) : 1;
+            const activeScale = isActive ? 1.08 : 1;
 
             return (
               <motion.div
@@ -124,7 +109,6 @@ const Experience = () => {
                 className="journey-card"
                 onHoverStart={() => { if (!isMobile) setHoveredIndex(i); }}
                 onHoverEnd={() => { if (!isMobile) setHoveredIndex(null); }}
-                onClick={() => { if (isMobile) setActiveCardIndex(i); }}
                 animate={{
                   rotate: activeRotation,
                   x: activeX,
@@ -141,37 +125,38 @@ const Experience = () => {
                   zIndex: activeZ,
                   marginLeft: isMobile ? '0' : `-${cardWidth / 2}px`,
                   marginTop: isMobile 
-                    ? (i === 0 ? '0px' : (isSmallMobile ? '-75px' : '-90px')) 
+                    ? (i === 0 ? '0px' : (isSmallMobile ? '-45px' : '-55px')) 
                     : `-${cardHeight / 2}px`,
                   width: isMobile ? '100%' : `${cardWidth}px`,
-                  maxWidth: isMobile ? '340px' : undefined,
+                  maxWidth: isMobile ? '350px' : undefined,
                   height: isMobile ? 'auto' : `${cardHeight}px`,
-                  background: 'linear-gradient(135deg, #1f1f1f, #141414)',
-                  border: isActive
-                    ? '1px solid rgba(79, 142, 247, 0.45)'
-                    : '1px solid rgba(255,255,255,0.05)',
-                  borderRadius: '16px',
-                  padding: isSmallMobile ? '20px' : '28px',
+                  background: '#131415',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '20px',
+                  padding: isSmallMobile ? '24px 20px' : '28px',
                   display: 'flex',
                   flexDirection: 'column',
                   textAlign: 'left',
-                  boxShadow: isActive
-                    ? '0 30px 60px -15px rgba(0,0,0,0.85), 0 0 30px rgba(79, 142, 247, 0.15)'
-                    : '0 15px 30px -10px rgba(0,0,0,0.6)',
-                  cursor: 'pointer',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.65)',
+                  cursor: isMobile ? 'default' : 'pointer',
                   willChange: 'transform',
                   transformStyle: 'preserve-3d',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: isSmallMobile ? '16px' : '24px', height: '32px' }}>
-                  {exp.logo}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isSmallMobile ? '20px' : '24px', height: '32px', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    {exp.logo}
+                  </div>
+                  <div style={{ fontSize: isSmallMobile ? '12px' : '13px', color: 'rgba(255, 255, 255, 0.45)', fontWeight: 500, fontFamily: 'var(--font-body)' }}>
+                    {exp.date}
+                  </div>
                 </div>
                 
-                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: isSmallMobile ? '18px' : '20px', fontWeight: '700', color: '#fff', marginBottom: '14px', letterSpacing: '-0.3px' }}>
+                <h3 style={{ fontFamily: 'var(--font-display)', fontSize: isSmallMobile ? '19px' : '21px', fontWeight: '700', color: '#fff', marginBottom: '12px', letterSpacing: '-0.3px' }}>
                   {exp.role}
                 </h3>
                 
-                <p style={{ fontSize: isSmallMobile ? '11.5px' : '12.5px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.6', margin: 0, fontWeight: 400 }}>
+                <p style={{ fontSize: isSmallMobile ? '12.5px' : '13.5px', color: 'rgba(255, 255, 255, 0.6)', lineHeight: '1.65', margin: 0, fontWeight: 400, fontFamily: 'var(--font-body)' }}>
                   {exp.description}
                 </p>
               </motion.div>
