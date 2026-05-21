@@ -27,8 +27,8 @@ const ScatterCard = ({ photo, initial, index, isInView, isMobile, isSmallMobile 
   const [isDragging, setIsDragging] = useState(false);
   const [zIndex, setZIndex] = useState(initial.zIndex);
 
-  const cardWidth = isSmallMobile ? 160 : isMobile ? 185 : 220;
-  const cardHeight = isSmallMobile ? 220 : isMobile ? 255 : 300;
+  const cardWidth = isSmallMobile ? 200 : isMobile ? 220 : 220;
+  const cardHeight = isSmallMobile ? 270 : isMobile ? 300 : 300;
 
   return (
     <motion.div
@@ -178,13 +178,13 @@ const ScatteredCardsSection = () => {
         <div style={{
           flex: '1 1 420px',
           position: 'relative',
-          height: isSmallMobile ? '230px' : isMobile ? '260px' : '420px',
+          height: isSmallMobile ? '280px' : isMobile ? '310px' : '420px',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'visible',
-          marginTop: isSmallMobile ? '-10px' : isMobile ? '-20px' : '0'
+          marginTop: isSmallMobile ? '10px' : isMobile ? '20px' : '0'
         }}>
           {/* Cards scattered around center */}
           {CARD_PHOTOS.map((photo, i) => (
