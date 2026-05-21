@@ -6,9 +6,7 @@ const Footer = () => {
           <div className="footer__copy">
             Designed with ❤️, Logic, and a lot of Chai. &nbsp;·&nbsp; Copyright ©{new Date().getFullYear()} Jaalthari Amarendar.
           </div>
-          <div className="footer__name">
-            Amar · Hyderabad, IN
-          </div>
+
         </div>
       </div>
     </footer>
