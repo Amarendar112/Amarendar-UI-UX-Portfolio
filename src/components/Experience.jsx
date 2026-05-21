@@ -97,10 +97,10 @@ const Experience = () => {
 
             const isActive = isMobile ? (activeCardIndex === i) : (hoveredIndex === i);
             const activeRotation = isActive ? 0 : rotation;
-            const activeY = isActive ? (isMobile ? -15 : yOff - 55) : (isMobile ? 0 : yOff);
+            const activeY = isActive ? (isMobile ? -25 : yOff - 55) : (isMobile ? 0 : yOff);
             const activeX = xOff;
             const activeZ = isActive ? 200 : defaultZIndex;
-            const activeScale = isActive ? (isMobile ? 1.04 : 1.08) : 1;
+            const activeScale = isActive ? (isMobile ? 1.06 : 1.08) : 1;
 
             return (
               <motion.div
@@ -114,13 +114,13 @@ const Experience = () => {
                   x: activeX,
                   y: activeY,
                   scale: activeScale,
-                  zIndex: activeZ,
                 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 style={{
                   position: isMobile ? 'relative' : 'absolute',
                   left: isMobile ? 'auto' : '50%',
                   top: isMobile ? 'auto' : '50%',
+                  zIndex: activeZ,
                   marginLeft: isMobile ? '0' : `-${cardWidth / 2}px`,
                   marginTop: isMobile 
                     ? (i === 0 ? '0px' : (isSmallMobile ? '-75px' : '-90px')) 
@@ -129,14 +129,16 @@ const Experience = () => {
                   maxWidth: isMobile ? '340px' : undefined,
                   height: isMobile ? 'auto' : `${cardHeight}px`,
                   background: 'linear-gradient(135deg, #1f1f1f, #141414)',
-                  border: '1px solid rgba(255,255,255,0.05)',
+                  border: isActive
+                    ? '1px solid rgba(79, 142, 247, 0.45)'
+                    : '1px solid rgba(255,255,255,0.05)',
                   borderRadius: '16px',
                   padding: isSmallMobile ? '20px' : '28px',
                   display: 'flex',
                   flexDirection: 'column',
                   textAlign: 'left',
                   boxShadow: isActive
-                    ? '0 30px 60px -15px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.1)'
+                    ? '0 30px 60px -15px rgba(0,0,0,0.85), 0 0 30px rgba(79, 142, 247, 0.15)'
                     : '0 15px 30px -10px rgba(0,0,0,0.6)',
                   cursor: 'pointer',
                   willChange: 'transform',
