@@ -67,6 +67,7 @@ const Experience = () => {
             alignItems: 'center',
             padding: '24px 20px 60px',
             marginTop: '20px',
+            transformStyle: 'preserve-3d',
          } : { 
             position: 'relative', 
             height: '420px', 
@@ -75,7 +76,8 @@ const Experience = () => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: '20px'
+            marginTop: '20px',
+            transformStyle: 'preserve-3d',
          }}>
           {experiences.map((exp, i) => {
             const cardWidth = isSmallMobile ? 280 : 320;
@@ -128,6 +130,8 @@ const Experience = () => {
                   x: activeX,
                   y: activeY,
                   scale: activeScale,
+                  zIndex: activeZ,
+                  z: isActive ? 50 : 0,
                 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
                 style={{
@@ -156,6 +160,7 @@ const Experience = () => {
                     : '0 15px 30px -10px rgba(0,0,0,0.6)',
                   cursor: 'pointer',
                   willChange: 'transform',
+                  transformStyle: 'preserve-3d',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', marginBottom: isSmallMobile ? '16px' : '24px', height: '32px' }}>
