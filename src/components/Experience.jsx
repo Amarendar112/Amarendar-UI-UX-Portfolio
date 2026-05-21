@@ -97,7 +97,21 @@ const Experience = () => {
 
             const isActive = isMobile ? (activeCardIndex === i) : (hoveredIndex === i);
             const activeRotation = isActive ? 0 : rotation;
-            const activeY = isActive ? (isMobile ? -25 : yOff - 55) : (isMobile ? 0 : yOff);
+            
+            const overlapAmount = isSmallMobile ? 75 : 90;
+            let activeY;
+            if (isMobile) {
+              if (i === activeCardIndex) {
+                activeY = -25;
+              } else if (i > activeCardIndex) {
+                activeY = overlapAmount + 15;
+              } else {
+                activeY = 0;
+              }
+            } else {
+              activeY = isActive ? yOff - 55 : yOff;
+            }
+            
             const activeX = xOff;
             const activeZ = isActive ? 200 : defaultZIndex;
             const activeScale = isActive ? (isMobile ? 1.06 : 1.08) : 1;
