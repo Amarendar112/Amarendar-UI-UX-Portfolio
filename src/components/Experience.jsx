@@ -35,6 +35,7 @@ const experiences = [
 ];
 const Experience = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [activeCardIndex, setActiveCardIndex] = useState(0); // Default to first card
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   useEffect(() => {
@@ -95,13 +96,14 @@ const Experience = () => {
 
             const defaultZIndex = isMobile ? (experiences.length - i) : (50 - Math.abs(i - 1) * 10);
 
-            const isActive = isMobile ? false : (hoveredIndex === i);
+            const isActive = isMobile ? (activeCardIndex === i) : (hoveredIndex === i);
             const activeRotation = isActive ? 0 : rotation;
             
             const activeY = isMobile ? 0 : (isActive ? yOff - 55 : yOff);
             const activeX = xOff;
-            const activeZ = isActive ? 200 : defaultZIndex;
-            const activeScale = isActive ? 1.08 : 1;
+            const activeZ = isActive ? (isMobile ? 10 : 200) : defaultZIndex;
+            const activeScale = isMobile ? (isActive ? 1.02 : 0.96) : (isActive ? 1.08 : 1);
+            const opacity = isMobile ? (isActive ? 1 : 0.55) : (hoveredIndex !== null ? (isActive ? 1 : 0.8) : 1);
 
             return (
               <motion.div
@@ -109,12 +111,14 @@ const Experience = () => {
                 className="journey-card"
                 onHoverStart={() => { if (!isMobile) setHoveredIndex(i); }}
                 onHoverEnd={() => { if (!isMobile) setHoveredIndex(null); }}
+                onClick={() => { if (isMobile) setActiveCardIndex(i); }}
                 animate={{
                   rotate: activeRotation,
                   x: activeX,
                   y: activeY,
                   scale: activeScale,
                   zIndex: activeZ,
+                  opacity: opacity,
                   z: isActive ? 50 : 0,
                 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 25 }}
@@ -138,7 +142,7 @@ const Experience = () => {
                   flexDirection: 'column',
                   textAlign: 'left',
                   boxShadow: '0 20px 40px rgba(0, 0, 0, 0.65)',
-                  cursor: isMobile ? 'default' : 'pointer',
+                  cursor: 'pointer',
                   willChange: 'transform',
                   transformStyle: 'preserve-3d',
                 }}
