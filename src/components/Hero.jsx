@@ -22,13 +22,13 @@ const CARD_INITIAL = [
   { x: 160, y: 20, rotate: 28, zIndex: 4 },
 ];
 
-/* ─── Single draggable scattered photo card ─── */
+/* ─── Scattered Card Component ─── */
 const ScatterCard = ({ photo, initial, index, isInView, isMobile, isSmallMobile }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [zIndex, setZIndex] = useState(initial.zIndex);
 
-  const cardWidth = isSmallMobile ? 130 : isMobile ? 160 : 220;
-  const cardHeight = isSmallMobile ? 180 : isMobile ? 220 : 300;
+  const cardWidth = isSmallMobile ? 160 : isMobile ? 185 : 220;
+  const cardHeight = isSmallMobile ? 220 : isMobile ? 255 : 300;
 
   return (
     <motion.div
@@ -105,9 +105,9 @@ const ScatterCard = ({ photo, initial, index, isInView, isMobile, isSmallMobile 
     </motion.div>
   );
 };
-
-
-
+ 
+ 
+ 
 /* ─── Scattered Cards Section ─── */
 const ScatteredCardsSection = () => {
   const sectionRef = useRef(null);
@@ -126,8 +126,8 @@ const ScatteredCardsSection = () => {
   // Scale positions for mobile
   const responsiveInitial = CARD_INITIAL.map(pos => ({
     ...pos,
-    x: isSmallMobile ? pos.x * 0.35 : isMobile ? pos.x * 0.5 : pos.x,
-    y: isSmallMobile ? pos.y * 0.35 : isMobile ? pos.y * 0.5 : pos.y,
+    x: isSmallMobile ? pos.x * 0.38 : isMobile ? pos.x * 0.52 : pos.x,
+    y: isSmallMobile ? pos.y * 0.38 : isMobile ? pos.y * 0.52 : pos.y,
   }));
 
   return (
@@ -178,13 +178,13 @@ const ScatteredCardsSection = () => {
         <div style={{
           flex: '1 1 420px',
           position: 'relative',
-          height: isSmallMobile ? '150px' : isMobile ? '180px' : '420px',
+          height: isSmallMobile ? '230px' : isMobile ? '260px' : '420px',
           width: '100%',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           overflow: 'visible',
-          marginTop: isSmallMobile ? '-40px' : isMobile ? '-50px' : '0'
+          marginTop: isSmallMobile ? '-10px' : isMobile ? '-20px' : '0'
         }}>
           {/* Cards scattered around center */}
           {CARD_PHOTOS.map((photo, i) => (
