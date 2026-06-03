@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 ───────────────────────────────────────── */
 const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, embedType = 'track' }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasBeenPlayed, setHasBeenPlayed] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
   const spotifyId = link ? link.split('/').pop() : null;
   const embedUrl = spotifyId
@@ -16,6 +18,7 @@ const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, emb
     e.preventDefault();
     e.stopPropagation();
     setIsPlaying(prev => !prev);
+    setHasBeenPlayed(true);
   };
 
   return (
@@ -85,9 +88,42 @@ const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, emb
         </div>
       </div>
 
-      <div style={{ borderRadius: '10px', overflow: 'hidden', marginTop: '-4px', display: isPlaying ? 'block' : 'none' }}>
-        <iframe src={embedUrl} width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="eager" style={{ display: 'block', borderRadius: '10px' }} />
-      </div>
+      {hasBeenPlayed && (
+        <div style={{
+          borderRadius: '10px',
+          overflow: 'hidden',
+          marginTop: '-4px',
+          display: isPlaying ? 'block' : 'none',
+          position: 'relative',
+          height: '80px'
+        }}>
+          {!iframeLoaded && (
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: '#111',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '11px',
+              color: 'rgba(255,255,255,0.4)',
+              fontFamily: 'Inter, sans-serif'
+            }}>
+              Loading Player...
+            </div>
+          )}
+          <iframe
+            src={embedUrl}
+            width="100%"
+            height="80"
+            frameBorder="0"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            loading="lazy"
+            onLoad={() => setIframeLoaded(true)}
+            style={{ display: iframeLoaded ? 'block' : 'none', borderRadius: '10px', border: 'none' }}
+          />
+        </div>
+      )}
     </div>
   );
 };
