@@ -1,24 +1,52 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 /* ─────────────────────────────────────────
    Spotify Card
 ───────────────────────────────────────── */
-const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, embedType = 'track' }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [hasBeenPlayed, setHasBeenPlayed] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, isPlaying, onTogglePlay, audioUrl, fallbackUrl }) => {
+  const audioRef = useRef(null);
+  const [progress, setProgress] = useState(0);
 
-  const spotifyId = link ? link.split('/').pop() : null;
-  const embedUrl = spotifyId
-    ? `https://open.spotify.com/embed/${embedType}/${spotifyId}?utm_source=generator&theme=0&autoplay=1`
-    : null;
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.play().catch(err => {
+        console.log("Audio play blocked/failed:", err);
+      });
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying]);
 
   const handlePlayClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsPlaying(prev => !prev);
-    setHasBeenPlayed(true);
+    onTogglePlay();
+  };
+
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return;
+    const current = audioRef.current.currentTime;
+    const duration = audioRef.current.duration || 1;
+    setProgress((current / duration) * 100);
+  };
+
+  const handleEnded = () => {
+    if (isPlaying) {
+      onTogglePlay();
+    }
+    setProgress(0);
+  };
+
+  const handleAudioError = () => {
+    if (audioRef.current && audioRef.current.src !== fallbackUrl) {
+      console.log(`Local audio for "${track}" not found, falling back to public demo link.`);
+      audioRef.current.src = fallbackUrl;
+      if (isPlaying) {
+        audioRef.current.play().catch(err => console.log(err));
+      }
+    }
   };
 
   return (
@@ -40,6 +68,15 @@ const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, emb
         transition: 'box-shadow 0.3s ease, border-color 0.3s ease',
       }}
     >
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
+        onError={handleAudioError}
+        preload="auto"
+      />
+
       <a
         href={link}
         target="_blank"
@@ -61,8 +98,15 @@ const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, emb
         </svg>
       </a>
 
+      {/* Dynamic Progress Bar */}
       <div style={{ background: 'rgba(255,255,255,0.12)', borderRadius: '99px', height: '3px', position: 'relative' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: '38%', background: isPlaying ? '#1DB954' : '#fff', borderRadius: '99px', transition: 'background 0.3s ease' }} />
+        <div style={{
+          position: 'absolute', left: 0, top: 0, height: '100%',
+          width: `${progress}%`,
+          background: isPlaying ? '#1DB954' : '#fff',
+          borderRadius: '99px',
+          transition: 'width 0.1s linear, background 0.3s ease'
+        }} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -87,43 +131,6 @@ const SpotifyCard = ({ track, artist, albumColor, rotation, scale = 1, link, emb
           <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)"><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" /><circle cx="5" cy="12" r="2" /></svg>
         </div>
       </div>
-
-      {hasBeenPlayed && (
-        <div style={{
-          borderRadius: '10px',
-          overflow: 'hidden',
-          marginTop: '-4px',
-          display: isPlaying ? 'block' : 'none',
-          position: 'relative',
-          height: '80px'
-        }}>
-          {!iframeLoaded && (
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: '#111',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '11px',
-              color: 'rgba(255,255,255,0.4)',
-              fontFamily: 'Inter, sans-serif'
-            }}>
-              Loading Player...
-            </div>
-          )}
-          <iframe
-            src={embedUrl}
-            width="100%"
-            height="80"
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            onLoad={() => setIframeLoaded(true)}
-            style={{ display: iframeLoaded ? 'block' : 'none', borderRadius: '10px', border: 'none' }}
-          />
-        </div>
-      )}
     </div>
   );
 };
@@ -321,6 +328,7 @@ const PositionedCard = ({ children, style, zIndex, onDragStart }) => {
 const BeyondPixels = () => {
   const [hint, setHint] = useState(true);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [playingTrackId, setPlayingTrackId] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -384,7 +392,11 @@ const BeyondPixels = () => {
         <SpotifyCard track="Yimmy Yimmy" artist="Tayc, Shreya Ghoshal"
           albumColor="linear-gradient(135deg,#ff8c00,#ff4500)"
           rotation={3} scale={sp}
-          link="https://open.spotify.com/track/08GYLNhKthS3arMdXsveRI" />
+          link="https://open.spotify.com/track/08GYLNhKthS3arMdXsveRI"
+          isPlaying={playingTrackId === 'yimmy'}
+          onTogglePlay={() => setPlayingTrackId(playingTrackId === 'yimmy' ? null : 'yimmy')}
+          audioUrl="/music/yimmy_yimmy.mp3"
+          fallbackUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" />
       </PositionedCard>
 
       {/* TOP-CENTER-LEFT: Popular Tracks */}
@@ -393,7 +405,10 @@ const BeyondPixels = () => {
           albumColor="linear-gradient(135deg,#ec4899,#db2777)"
           rotation={-4} scale={sp}
           link="https://open.spotify.com/artist/5KmFbbptaZhEtmMibvibUE"
-          embedType="artist" />
+          isPlaying={playingTrackId === 'popular'}
+          onTogglePlay={() => setPlayingTrackId(playingTrackId === 'popular' ? null : 'popular')}
+          audioUrl="/music/shreya_popular.mp3"
+          fallbackUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" />
       </PositionedCard>
 
       {/* TOP-CENTER: Convocation */}
@@ -406,7 +421,11 @@ const BeyondPixels = () => {
         <SpotifyCard track="Cheques" artist="Shubh"
           albumColor="linear-gradient(135deg,#1e3c72,#2a5298)"
           rotation={5} scale={sp}
-          link="https://open.spotify.com/track/0H2LYJrPFMEr5JmdNBSwUd" />
+          link="https://open.spotify.com/track/0H2LYJrPFMEr5JmdNBSwUd"
+          isPlaying={playingTrackId === 'cheques'}
+          onTogglePlay={() => setPlayingTrackId(playingTrackId === 'cheques' ? null : 'cheques')}
+          audioUrl="/music/cheques.mp3"
+          fallbackUrl="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" />
       </PositionedCard>
 
       {/* TOP-RIGHT: Hobbies */}
