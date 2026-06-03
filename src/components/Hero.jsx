@@ -116,6 +116,7 @@ const ScatteredCardsSection = () => {
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -215,9 +216,11 @@ const Hero = () => {
 
   const isRevealedMobileRef = useRef(false);
   const allowMouseLeaveRef = useRef(false);
+  const lastTriggerRef = useRef(0);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -249,8 +252,18 @@ const Hero = () => {
     };
   }, [windowWidth]);
 
-  const handleMobileClick = () => {
+  const handleMobileClick = (e) => {
     if (windowWidth >= 768) return;
+
+    if (e && e.cancelable) {
+      e.preventDefault();
+    }
+
+    const now = Date.now();
+    if (lastTriggerRef.current && (now - lastTriggerRef.current < 300)) {
+      return;
+    }
+    lastTriggerRef.current = now;
 
     const nextState = !isRevealedMobileRef.current;
     isRevealedMobileRef.current = nextState;
@@ -350,6 +363,7 @@ const Hero = () => {
             onMouseEnter={() => { setIsHovering(true); setRevealed(true); }}
             onMouseLeave={() => setIsHovering(false)}
             onClick={handleMobileClick}
+            onTouchStart={handleMobileClick}
             style={{
               height: 'clamp(60vh, 85vh, 95vh)',
               width: 'calc(clamp(60vh, 85vh, 95vh) / 1.25)',
