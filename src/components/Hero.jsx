@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import useMousePosition from '../hooks/useMousePosition';
 import hoverEffect from 'hover-effect';
+import IntroVideo from './IntroVideo';
 /* ── Photo card data ─────────────────────────────────────────────────
    Replace src: null with your image path when ready.
    ─────────────────────────────────────────────────────────────────── */
@@ -402,6 +403,9 @@ const Hero = () => {
           <div style={{ width: '1px', height: '36px', background: 'linear-gradient(180deg, rgba(255,255,255,0.3), transparent)' }} />
         </div>
       </section>
+
+      {/* Intro Video Section */}
+      <IntroVideo />
 
       {/* Scattered draggable photo cards section */}
       <ScatteredCardsSection />
