@@ -283,6 +283,9 @@ const IntroVideo = () => {
               onEnded={handleVideoEnded}
               playsInline
               loop
+              controlsList="nodownload nofullscreen noremoteplayback"
+              disablePictureInPicture
+              disableRemotePlayback
               style={{
                 position: 'absolute',
                 top: 0,
@@ -293,6 +296,8 @@ const IntroVideo = () => {
                 // Zoom and shift to crop bottom-right watermark out of view bounds
                 transform: 'scale(1.14)',
                 transformOrigin: 'top left',
+                // Prevent mobile browser video assistants from overlaying download/settings buttons
+                pointerEvents: 'none',
               }}
             />
           </div>
