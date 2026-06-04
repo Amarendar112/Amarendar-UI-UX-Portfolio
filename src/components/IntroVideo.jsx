@@ -5,6 +5,7 @@ import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 const IntroVideo = () => {
   const sectionRef = useRef(null);
   const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const progressBarRef = useRef(null);
   
   // Autoplay only when visible in the viewport
@@ -18,6 +19,28 @@ const IntroVideo = () => {
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [showMobileControls, setShowMobileControls] = useState(false);
+  const [videoInitialized, setVideoInitialized] = useState(false);
+
+  // Initialize in-memory video element on mount (never added to DOM)
+  useEffect(() => {
+    const video = document.createElement('video');
+    video.src = "/intro_video.mp4";
+    video.muted = true;
+    video.preload = "auto";
+    video.loop = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('webkit-playsinline', 'true');
+    
+    videoRef.current = video;
+    setVideoInitialized(true);
+
+    return () => {
+      video.pause();
+      videoRef.current = null;
+      setVideoInitialized(false);
+    };
+  }, []);
 
   // Detect mobile/touch devices
   useEffect(() => {
@@ -40,6 +63,7 @@ const IntroVideo = () => {
 
   // Manage autoplay when entering/leaving viewport
   useEffect(() => {
+    if (!videoInitialized) return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -54,19 +78,74 @@ const IntroVideo = () => {
       video.pause();
       setIsPlaying(false);
     }
-  }, [isInView]);
+  }, [isInView, videoInitialized]);
 
   // Sync mute state with video element
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = isMuted;
-      if (!isMuted) {
-        videoRef.current.volume = 1.0;
-      }
+    if (!videoInitialized) return;
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = isMuted;
+    if (!isMuted) {
+      video.volume = 1.0;
     }
-  }, [isMuted]);
+  }, [isMuted, videoInitialized]);
 
+  // Canvas rendering loop
+  useEffect(() => {
+    if (!videoInitialized) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
 
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    const render = () => {
+      if (video.readyState >= 2) {
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+
+        if (vw && vh) {
+          // Keep canvas resolution synced to video width/height
+          if (canvas.width !== vw || canvas.height !== vh) {
+            canvas.width = vw;
+            canvas.height = vh;
+          }
+
+          // Crop 14% off bottom and right (top-left aligned) to remove watermark
+          const sWidth = vw * 0.86;
+          const sHeight = vh * 0.86;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(video, 0, 0, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+        }
+      }
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    // Initial frames on events to prevent black screen
+    const drawStaticFrame = () => {
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (vw && vh) {
+        canvas.width = vw;
+        canvas.height = vh;
+        ctx.drawImage(video, 0, 0, vw * 0.86, vh * 0.86, 0, 0, canvas.width, canvas.height);
+      }
+    };
+
+    video.addEventListener('loadeddata', drawStaticFrame);
+    video.addEventListener('seeked', drawStaticFrame);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      video.removeEventListener('loadeddata', drawStaticFrame);
+      video.removeEventListener('seeked', drawStaticFrame);
+    };
+  }, [videoInitialized]);
 
   const handlePlayerClick = (e) => {
     if (e) e.stopPropagation();
@@ -98,14 +177,6 @@ const IntroVideo = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    // If video is playing and currently muted, click to unmute instead of pausing
-    if (isPlaying && isMuted) {
-      setIsMuted(false);
-      video.muted = false;
-      video.volume = 1.0;
-      return;
-    }
-
     if (video.paused) {
       video.play()
         .then(() => setIsPlaying(true))
@@ -128,23 +199,44 @@ const IntroVideo = () => {
     }
   };
 
-  const handleTimeUpdate = () => {
+  // Telemetry event listeners for the in-memory video player
+  useEffect(() => {
+    if (!videoInitialized) return;
     const video = videoRef.current;
     if (!video) return;
-    setCurrentTime(video.currentTime);
-    if (video.duration) {
-      setProgress((video.currentTime / video.duration) * 100);
-      if (duration !== video.duration) {
+
+    const onTimeUpdate = () => {
+      setCurrentTime(video.currentTime);
+      if (video.duration) {
+        setProgress((video.currentTime / video.duration) * 100);
         setDuration(video.duration);
       }
-    }
-  };
+    };
 
-  const handleLoadedMetadata = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    setDuration(video.duration);
-  };
+    const onLoadedMetadata = () => {
+      setDuration(video.duration);
+    };
+
+    const onEnded = () => {
+      setIsPlaying(false);
+      setProgress(0);
+      setCurrentTime(0);
+    };
+
+    video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('loadedmetadata', onLoadedMetadata);
+    video.addEventListener('ended', onEnded);
+
+    if (video.duration) {
+      setDuration(video.duration);
+    }
+
+    return () => {
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('loadedmetadata', onLoadedMetadata);
+      video.removeEventListener('ended', onEnded);
+    };
+  }, [videoInitialized]);
 
   const handleScrub = (e) => {
     const video = videoRef.current;
@@ -165,13 +257,6 @@ const IntroVideo = () => {
     const minutes = Math.floor(timeInSeconds / 60);
     const seconds = Math.floor(timeInSeconds % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-  };
-
-  // When video ends, reset state
-  const handleVideoEnded = () => {
-    setIsPlaying(false);
-    setProgress(0);
-    setCurrentTime(0);
   };
 
   return (
@@ -266,26 +351,16 @@ const IntroVideo = () => {
             cursor: 'pointer',
           }}
         >
-          {/* Video element with 1.08 scale crop to remove watermark */}
+          {/* Canvas element rendering cropped video frames */}
           <div style={{
             width: '100%',
             height: '100%',
             overflow: 'hidden',
             position: 'relative',
           }}>
-            <video
-              ref={videoRef}
-              src="/intro_video.mp4"
-              muted={isMuted}
-              preload="auto"
-              onTimeUpdate={handleTimeUpdate}
-              onLoadedMetadata={handleLoadedMetadata}
-              onEnded={handleVideoEnded}
-              playsInline
-              loop
-              controlsList="nodownload nofullscreen noremoteplayback"
-              disablePictureInPicture
-              disableRemotePlayback
+            {/* The canvas is displayed, the video is completely hidden from layouts */}
+            <canvas
+              ref={canvasRef}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -293,16 +368,13 @@ const IntroVideo = () => {
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                // Zoom and shift to crop bottom-right watermark out of view bounds
-                transform: 'scale(1.14)',
-                transformOrigin: 'top left',
-                // Prevent mobile browser video assistants from overlaying download/settings buttons
                 pointerEvents: 'none',
               }}
             />
+            {/* Fully deleted <video> DOM node to completely prevent mobile browser assistants from overlaying native download/settings buttons */}
           </div>
 
-          {/* Large Centered Play Button Overlay (when paused or hovered while paused) */}
+          {/* Large Centered Play Button Overlay */}
           <div style={{
             position: 'absolute',
             inset: 0,
@@ -344,7 +416,7 @@ const IntroVideo = () => {
               opacity: (isMobileDevice ? showMobileControls : isHovered) || !isPlaying ? 1 : 0,
             }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            onClick={(e) => e.stopPropagation()} // Prevent controls clicks from triggering play/pause
+            onClick={(e) => e.stopPropagation()}
             style={{
               position: 'absolute',
               bottom: 0,
@@ -359,7 +431,7 @@ const IntroVideo = () => {
               pointerEvents: 'auto',
             }}
           >
-            {/* Progress Bar (Clickable & Scrubbable) */}
+            {/* Progress Bar */}
             <div 
               ref={progressBarRef}
               onClick={handleScrub}
@@ -382,7 +454,7 @@ const IntroVideo = () => {
                 position: 'absolute',
                 left: 0,
               }} />
-              {/* Scrub Handle (glowing dot) */}
+              {/* Scrub Handle */}
               <div style={{
                 width: '12px',
                 height: '12px',
@@ -391,7 +463,7 @@ const IntroVideo = () => {
                 position: 'absolute',
                 left: `calc(${progress}% - 6px)`,
                 boxShadow: '0 0 10px rgba(79, 142, 247, 0.8)',
-                opacity: isHovered ? 1 : 0,
+                opacity: isHovered || isMobileDevice ? 1 : 0,
                 transition: 'opacity 0.2s ease',
               }} />
             </div>
@@ -416,9 +488,10 @@ const IntroVideo = () => {
                     padding: 0,
                     opacity: 0.85,
                     transition: 'opacity 0.2s',
+                    cursor: 'pointer',
                   }}
-                  onMouseEnter={(e) => e.target.style.opacity = 1}
-                  onMouseLeave={(e) => e.target.style.opacity = 0.85}
+                  onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                  onMouseLeave={(e) => e.currentTarget.style.opacity = 0.85}
                 >
                   {isPlaying ? <Pause size={18} fill="#ffffff" /> : <Play size={18} fill="#ffffff" />}
                 </button>
