@@ -70,6 +70,20 @@ const IntroVideo = () => {
 
   const handlePlayerClick = (e) => {
     if (e) e.stopPropagation();
+    
+    // If the video is playing and currently muted, unmute it immediately on click/tap!
+    if (isPlaying && isMuted) {
+      setIsMuted(false);
+      if (videoRef.current) {
+        videoRef.current.muted = false;
+        videoRef.current.volume = 1.0;
+      }
+      if (isMobileDevice) {
+        setShowMobileControls(true);
+      }
+      return;
+    }
+
     if (isMobileDevice) {
       if (!showMobileControls) {
         setShowMobileControls(true);
@@ -120,6 +134,9 @@ const IntroVideo = () => {
     setCurrentTime(video.currentTime);
     if (video.duration) {
       setProgress((video.currentTime / video.duration) * 100);
+      if (duration !== video.duration) {
+        setDuration(video.duration);
+      }
     }
   };
 
