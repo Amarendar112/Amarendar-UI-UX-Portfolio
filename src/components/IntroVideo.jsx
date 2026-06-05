@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Play, Pause } from 'lucide-react';
 
 const IntroVideo = () => {
@@ -7,33 +7,27 @@ const IntroVideo = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const progressBarRef = useRef(null);
-  
-  // Autoplay only when visible in the viewport
-  const isInView = useInView(sectionRef, { amount: 0.3 });
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
-  const [showMobileControls, setShowMobileControls] = useState(false);
   const [videoInitialized, setVideoInitialized] = useState(false);
-  const [audioUnlocked, setAudioUnlocked] = useState(false);
-  const [showSoundHint, setShowSoundHint] = useState(false);
 
   // Initialize in-memory video element on mount (never added to DOM)
   useEffect(() => {
     const video = document.createElement('video');
     video.src = "/intro_video.mp4";
-    video.muted = true;
+    video.muted = false;
+    video.volume = 1.0;
     video.preload = "auto";
     video.loop = true;
     video.playsInline = true;
     video.setAttribute('playsinline', 'true');
     video.setAttribute('webkit-playsinline', 'true');
-    
+
     videoRef.current = video;
     setVideoInitialized(true);
 
@@ -54,45 +48,6 @@ const IntroVideo = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Auto-hide mobile controls on playback inactivity
-  useEffect(() => {
-    if (!showMobileControls || !isPlaying) return;
-    const timer = setTimeout(() => {
-      setShowMobileControls(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [showMobileControls, isPlaying]);
-
-  // Manage autoplay when entering/leaving viewport
-  useEffect(() => {
-    if (!videoInitialized) return;
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isInView) {
-      video.play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => {
-          console.log("Autoplay blocked or failed:", err);
-          setIsPlaying(false);
-        });
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  }, [isInView, videoInitialized]);
-
-  // Sync mute state with video element
-  useEffect(() => {
-    if (!videoInitialized) return;
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = isMuted;
-    if (!isMuted) {
-      video.volume = 1.0;
-    }
-  }, [isMuted, videoInitialized]);
-
   // Canvas rendering loop
   useEffect(() => {
     if (!videoInitialized) return;
@@ -107,18 +62,13 @@ const IntroVideo = () => {
       if (video.readyState >= 2) {
         const vw = video.videoWidth;
         const vh = video.videoHeight;
-
         if (vw && vh) {
-          // Keep canvas resolution synced to video width/height
           if (canvas.width !== vw || canvas.height !== vh) {
             canvas.width = vw;
             canvas.height = vh;
           }
-
-          // Crop 14% off bottom and right (top-left aligned) to remove watermark
           const sWidth = vw * 0.86;
           const sHeight = vh * 0.86;
-
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(video, 0, 0, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
         }
@@ -128,7 +78,6 @@ const IntroVideo = () => {
 
     render();
 
-    // Initial frames on events to prevent black screen
     const drawStaticFrame = () => {
       const vw = video.videoWidth;
       const vh = video.videoHeight;
@@ -149,74 +98,7 @@ const IntroVideo = () => {
     };
   }, [videoInitialized]);
 
-  const handlePlayerClick = (e) => {
-    if (e) e.stopPropagation();
-
-    // First click unlocks audio — browsers require a real click gesture
-    if (!audioUnlocked) {
-      setAudioUnlocked(true);
-      setShowSoundHint(false);
-      setIsMuted(false);
-      if (videoRef.current) {
-        videoRef.current.muted = false;
-        videoRef.current.volume = 1.0;
-        videoRef.current.play()
-          .then(() => setIsPlaying(true))
-          .catch(err => console.error('Play failed:', err));
-      }
-      return;
-    }
-
-    // If playing and muted, unmute immediately
-    if (isPlaying && isMuted) {
-      setIsMuted(false);
-      if (videoRef.current) {
-        videoRef.current.muted = false;
-        videoRef.current.volume = 1.0;
-      }
-      if (isMobileDevice) {
-        setShowMobileControls(true);
-      }
-      return;
-    }
-
-    if (isMobileDevice) {
-      if (!showMobileControls) {
-        setShowMobileControls(true);
-        return;
-      }
-    }
-    handlePlayPause(e);
-  };
-
-  const handlePlayPause = (e) => {
-    if (e) e.stopPropagation();
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (video.paused) {
-      video.play()
-        .then(() => setIsPlaying(true))
-        .catch((err) => console.error("Error playing video:", err));
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const handleMuteToggle = (e) => {
-    if (e) e.stopPropagation();
-    const nextMuted = !isMuted;
-    setIsMuted(nextMuted);
-    if (videoRef.current) {
-      videoRef.current.muted = nextMuted;
-      if (!nextMuted) {
-        videoRef.current.volume = 1.0;
-      }
-    }
-  };
-
-  // Telemetry event listeners for the in-memory video player
+  // Telemetry event listeners
   useEffect(() => {
     if (!videoInitialized) return;
     const video = videoRef.current;
@@ -230,9 +112,7 @@ const IntroVideo = () => {
       }
     };
 
-    const onLoadedMetadata = () => {
-      setDuration(video.duration);
-    };
+    const onLoadedMetadata = () => setDuration(video.duration);
 
     const onEnded = () => {
       setIsPlaying(false);
@@ -244,9 +124,7 @@ const IntroVideo = () => {
     video.addEventListener('loadedmetadata', onLoadedMetadata);
     video.addEventListener('ended', onEnded);
 
-    if (video.duration) {
-      setDuration(video.duration);
-    }
+    if (video.duration) setDuration(video.duration);
 
     return () => {
       video.removeEventListener('timeupdate', onTimeUpdate);
@@ -255,16 +133,31 @@ const IntroVideo = () => {
     };
   }, [videoInitialized]);
 
+  // Click: toggle play/pause with sound
+  const handlePlayerClick = (e) => {
+    if (e) e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (video.paused) {
+      video.muted = false;
+      video.volume = 1.0;
+      video.play()
+        .then(() => setIsPlaying(true))
+        .catch(err => console.error('Play failed:', err));
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
+
   const handleScrub = (e) => {
     const video = videoRef.current;
     const progressBar = progressBarRef.current;
     if (!video || !progressBar) return;
-
     const rect = progressBar.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
-    const width = rect.width;
-    const percentage = Math.min(Math.max(clickX / width, 0), 1);
-    
+    const percentage = Math.min(Math.max(clickX / rect.width, 0), 1);
     video.currentTime = percentage * video.duration;
     setProgress(percentage * 100);
   };
@@ -275,6 +168,9 @@ const IntroVideo = () => {
     const seconds = Math.floor(timeInSeconds % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
+
+  // Controls visible when paused or hovered
+  const showControls = !isPlaying || isHovered;
 
   return (
     <section
@@ -336,40 +232,8 @@ const IntroVideo = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          onMouseEnter={() => {
-            if (isMobileDevice) return;
-            setIsHovered(true);
-            if (audioUnlocked) {
-              // Audio already unlocked by a prior click — unmute freely
-              setIsMuted(false);
-              if (videoRef.current) {
-                videoRef.current.muted = false;
-                videoRef.current.volume = 1.0;
-                videoRef.current.play()
-                  .then(() => setIsPlaying(true))
-                  .catch(e => console.log('Play failed', e));
-              }
-            } else {
-              // Show hint — browser needs a click first to allow audio
-              setShowSoundHint(true);
-              if (videoRef.current) {
-                videoRef.current.play()
-                  .then(() => setIsPlaying(true))
-                  .catch(e => console.log('Play failed', e));
-              }
-            }
-          }}
-          onMouseLeave={() => {
-            if (isMobileDevice) return;
-            setIsHovered(false);
-            setShowSoundHint(false);
-            setIsMuted(true);
-            if (videoRef.current) {
-              videoRef.current.muted = true;
-              videoRef.current.pause();
-              setIsPlaying(false);
-            }
-          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           onClick={handlePlayerClick}
           style={{
             width: '100%',
@@ -383,27 +247,18 @@ const IntroVideo = () => {
             cursor: 'pointer',
           }}
         >
-          {/* Canvas element rendering cropped video frames */}
-          <div style={{
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-            position: 'relative',
-          }}>
-            {/* The canvas is displayed, the video is completely hidden from layouts */}
+          {/* Canvas rendering cropped video frames */}
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
             <canvas
               ref={canvasRef}
               style={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
+                top: 0, left: 0,
+                width: '100%', height: '100%',
                 objectFit: 'cover',
                 pointerEvents: 'none',
               }}
             />
-            {/* Fully deleted <video> DOM node to completely prevent mobile browser assistants from overlaying native download/settings buttons */}
           </div>
 
           {/* Large Centered Play Button Overlay */}
@@ -441,51 +296,17 @@ const IntroVideo = () => {
             </motion.div>
           </div>
 
-          {/* Sound hint — shown on first hover before audio is unlocked */}
-          <motion.div
-            animate={{ opacity: showSoundHint && !audioUnlocked ? 1 : 0, y: showSoundHint && !audioUnlocked ? 0 : 6 }}
-            transition={{ duration: 0.25 }}
-            style={{
-              position: 'absolute',
-              top: '16px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: 'rgba(0,0,0,0.65)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '99px',
-              padding: '6px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '7px',
-              pointerEvents: 'none',
-              zIndex: 10,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span style={{ fontSize: '14px' }}>🔊</span>
-            <span style={{
-              fontSize: '12px',
-              color: 'rgba(255,255,255,0.85)',
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 500,
-              letterSpacing: '0.02em',
-            }}>Click to enable sound</span>
-          </motion.div>
-
-          {/* Sleek Custom Controls Bar */}
+          {/* Controls Bar */}
           <motion.div
             animate={{
-              y: (isMobileDevice ? showMobileControls : isHovered) || !isPlaying ? 0 : 20,
-              opacity: (isMobileDevice ? showMobileControls : isHovered) || !isPlaying ? 1 : 0,
+              y: showControls ? 0 : 20,
+              opacity: showControls ? 1 : 0,
             }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
             onClick={(e) => e.stopPropagation()}
             style={{
               position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: 0, left: 0, right: 0,
               padding: '24px 20px 16px',
               background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)',
               zIndex: 3,
@@ -496,7 +317,7 @@ const IntroVideo = () => {
             }}
           >
             {/* Progress Bar */}
-            <div 
+            <div
               ref={progressBarRef}
               onClick={handleScrub}
               style={{
@@ -518,7 +339,6 @@ const IntroVideo = () => {
                 position: 'absolute',
                 left: 0,
               }} />
-              {/* Scrub Handle */}
               <div style={{
                 width: '12px',
                 height: '12px',
@@ -532,17 +352,11 @@ const IntroVideo = () => {
               }} />
             </div>
 
-            {/* Bottom Row Controls */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'between',
-              width: '100%',
-            }}>
-              {/* Left Group: Play/Pause, Time */}
+            {/* Bottom Row */}
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <button
-                  onClick={handlePlayPause}
+                  onClick={handlePlayerClick}
                   style={{
                     background: 'none',
                     border: 'none',
@@ -569,8 +383,6 @@ const IntroVideo = () => {
                   {formatTime(currentTime)} <span style={{ color: 'rgba(255,255,255,0.35)' }}>/</span> {formatTime(duration)}
                 </div>
               </div>
-
-              <div style={{ flexGrow: 1 }} />
             </div>
           </motion.div>
         </motion.div>
