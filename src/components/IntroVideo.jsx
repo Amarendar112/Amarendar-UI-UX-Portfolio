@@ -20,6 +20,8 @@ const IntroVideo = () => {
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [showMobileControls, setShowMobileControls] = useState(false);
   const [videoInitialized, setVideoInitialized] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [showSoundHint, setShowSoundHint] = useState(false);
 
   // Initialize in-memory video element on mount (never added to DOM)
   useEffect(() => {
@@ -149,8 +151,23 @@ const IntroVideo = () => {
 
   const handlePlayerClick = (e) => {
     if (e) e.stopPropagation();
-    
-    // If the video is playing and currently muted, unmute it immediately on click/tap!
+
+    // First click unlocks audio — browsers require a real click gesture
+    if (!audioUnlocked) {
+      setAudioUnlocked(true);
+      setShowSoundHint(false);
+      setIsMuted(false);
+      if (videoRef.current) {
+        videoRef.current.muted = false;
+        videoRef.current.volume = 1.0;
+        videoRef.current.play()
+          .then(() => setIsPlaying(true))
+          .catch(err => console.error('Play failed:', err));
+      }
+      return;
+    }
+
+    // If playing and muted, unmute immediately
     if (isPlaying && isMuted) {
       setIsMuted(false);
       if (videoRef.current) {
@@ -322,18 +339,30 @@ const IntroVideo = () => {
           onMouseEnter={() => {
             if (isMobileDevice) return;
             setIsHovered(true);
-            setIsMuted(false);
-            if (videoRef.current) {
-              videoRef.current.muted = false;
-              videoRef.current.volume = 1.0;
-              videoRef.current.play()
-                .then(() => setIsPlaying(true))
-                .catch(e => console.log("Play failed", e));
+            if (audioUnlocked) {
+              // Audio already unlocked by a prior click — unmute freely
+              setIsMuted(false);
+              if (videoRef.current) {
+                videoRef.current.muted = false;
+                videoRef.current.volume = 1.0;
+                videoRef.current.play()
+                  .then(() => setIsPlaying(true))
+                  .catch(e => console.log('Play failed', e));
+              }
+            } else {
+              // Show hint — browser needs a click first to allow audio
+              setShowSoundHint(true);
+              if (videoRef.current) {
+                videoRef.current.play()
+                  .then(() => setIsPlaying(true))
+                  .catch(e => console.log('Play failed', e));
+              }
             }
           }}
           onMouseLeave={() => {
             if (isMobileDevice) return;
             setIsHovered(false);
+            setShowSoundHint(false);
             setIsMuted(true);
             if (videoRef.current) {
               videoRef.current.muted = true;
@@ -411,6 +440,38 @@ const IntroVideo = () => {
               <Play size={26} fill="#ffffff" color="#ffffff" style={{ marginLeft: '4px' }} />
             </motion.div>
           </div>
+
+          {/* Sound hint — shown on first hover before audio is unlocked */}
+          <motion.div
+            animate={{ opacity: showSoundHint && !audioUnlocked ? 1 : 0, y: showSoundHint && !audioUnlocked ? 0 : 6 }}
+            transition={{ duration: 0.25 }}
+            style={{
+              position: 'absolute',
+              top: '16px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(0,0,0,0.65)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: '99px',
+              padding: '6px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+              pointerEvents: 'none',
+              zIndex: 10,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ fontSize: '14px' }}>🔊</span>
+            <span style={{
+              fontSize: '12px',
+              color: 'rgba(255,255,255,0.85)',
+              fontFamily: "'Outfit', sans-serif",
+              fontWeight: 500,
+              letterSpacing: '0.02em',
+            }}>Click to enable sound</span>
+          </motion.div>
 
           {/* Sleek Custom Controls Bar */}
           <motion.div
