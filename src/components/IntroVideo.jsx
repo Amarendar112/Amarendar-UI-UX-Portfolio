@@ -324,6 +324,8 @@ const IntroVideo = () => {
             setIsHovered(true);
             setIsMuted(false);
             if (videoRef.current) {
+              videoRef.current.muted = false;
+              videoRef.current.volume = 1.0;
               videoRef.current.play()
                 .then(() => setIsPlaying(true))
                 .catch(e => console.log("Play failed", e));
@@ -334,6 +336,7 @@ const IntroVideo = () => {
             setIsHovered(false);
             setIsMuted(true);
             if (videoRef.current) {
+              videoRef.current.muted = true;
               videoRef.current.pause();
               setIsPlaying(false);
             }
