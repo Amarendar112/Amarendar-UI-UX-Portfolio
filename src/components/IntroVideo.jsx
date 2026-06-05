@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 
 const IntroVideo = () => {
   const sectionRef = useRef(null);
@@ -507,28 +507,6 @@ const IntroVideo = () => {
               </div>
 
               <div style={{ flexGrow: 1 }} />
-
-              {/* Right Group: Mute */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <button
-                  onClick={handleMuteToggle}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: 0,
-                    opacity: 0.85,
-                    transition: 'opacity 0.2s',
-                    cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
-                  onMouseLeave={(e) => e.currentTarget.style.opacity = 0.85}
-                >
-                  {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                </button>
-              </div>
             </div>
           </motion.div>
         </motion.div>
