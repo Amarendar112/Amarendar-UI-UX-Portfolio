@@ -211,8 +211,10 @@ const Hero = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [revealed, setRevealed] = useState(false);
   const [role, setRole] = useState("UI / UX Designer");
+  const [cursorVisible, setCursorVisible] = useState(true);
   const { x, y } = useMousePosition();
   const containerRef = useRef(null);
+  const heroSectionRef = useRef(null);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   const isRevealedMobileRef = useRef(false);
@@ -224,6 +226,18 @@ const Hero = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  /* Hide cursor ring when scrolled past hero section */
+  useEffect(() => {
+    const handleScroll = () => {
+      const heroEl = heroSectionRef.current;
+      if (!heroEl) return;
+      const { bottom } = heroEl.getBoundingClientRect();
+      setCursorVisible(bottom > 0);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const isMobile = windowWidth < 768;
@@ -316,6 +330,7 @@ const Hero = () => {
   return (
     <>
       <section
+        ref={heroSectionRef}
         id="hero"
         style={{
           position: 'relative', width: '100%', minHeight: '100vh',
@@ -388,7 +403,7 @@ const Hero = () => {
           </div>
         </div>
 
-        {!isMobile && <MaskCursorRing x={x} y={y} isHovering={isHovering} />}
+        {!isMobile && cursorVisible && <MaskCursorRing x={x} y={y} isHovering={isHovering} />}
 
         {/* Scroll hint */}
         <div style={{
