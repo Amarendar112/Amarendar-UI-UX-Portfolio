@@ -1,77 +1,117 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 /* ─────────────────────────────────────────────────────────────────────────
-   IntroVideo — Pure CSS phone frame (no PNG, no artifacts)
-   Matches the Desert Titanium orange/copper frame from the mockup exactly.
+   IntroVideo
+   · Hover section  → plays muted preview
+   · Hover out      → pauses + resets (only if preview mode)
+   · Scroll away    → pauses + resets
+   · Always muted   → no audio output
    ───────────────────────────────────────────────────────────────────────── */
 
 const IntroVideo = () => {
-  const sectionRef = useRef(null);
-  const videoRef   = useRef(null);
+  const sectionRef  = useRef(null);
+  const videoRef    = useRef(null);
+  const fadeRafRef  = useRef(null);    // cancel any running loops
 
-  const [inView,  setInView]  = useState(false);
-  const [soundOn, setSoundOn] = useState(false);
+  const [inView, setInView] = useState(false);
 
+  // ── Motion values (declared FIRST — used in handlers below) ──────────────
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const tiltX   = useSpring(useTransform(mouseY, [-350, 350], [ 8, -8  ]), { stiffness: 85, damping: 22 });
+  const tiltY   = useSpring(useTransform(mouseX, [-500, 500], [-10, 10 ]), { stiffness: 85, damping: 22 });
+  const shadowX = useSpring(useTransform(mouseX, [-500, 500], [ 12,-12 ]), { stiffness: 85, damping: 22 });
+  const glareX  = useSpring(useTransform(mouseX, [-500, 500], [-30, 30 ]), { stiffness: 85, damping: 22 });
+  const glareY  = useSpring(useTransform(mouseY, [-350, 350], [-20, 20 ]), { stiffness: 85, damping: 22 });
+
+  // ── Video actions ─────────────────────────────────────────────────────────
+  const playMutedFromStart = useCallback(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.volume      = 0;
+    vid.muted       = true;
+    vid.currentTime = 0;
+    vid.play().catch(() => {});
+  }, []);
+
+  const pauseAndReset = useCallback(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.pause();
+    vid.currentTime = 0;
+    vid.muted  = true;
+    vid.volume = 0;
+  }, []);
+
+  const handleClick = useCallback(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    // Always stays muted — toggle play/pause only
+    vid.paused ? vid.play().catch(() => {}) : vid.pause();
+  }, []);
+
+  // ── Intersection Observer ─────────────────────────────────────────────────
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          const vid = videoRef.current;
-          if (!vid) return;
-          vid.muted = true;
-          vid.loop  = true;
-          vid.play().catch(() => {});
+        setInView(entry.isIntersecting);
+        if (!entry.isIntersecting) {
+          pauseAndReset();
         }
       },
       { threshold: 0.15 }
     );
     obs.observe(el);
     return () => obs.disconnect();
+  }, [pauseAndReset]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
+    };
   }, []);
 
-  const handleClick = () => {
-    const vid = videoRef.current;
-    if (!vid) return;
-    if (!soundOn) {
-      vid.muted  = false;
-      vid.volume = 1;
-      vid.play().catch(() => {});
-      setSoundOn(true);
-    } else {
-      vid.paused ? vid.play().catch(() => {}) : vid.pause();
-    }
+  // ── Mouse handlers ────────────────────────────────────────────────────────
+  const handleMouseMove = (e) => {
+    if (!sectionRef.current) return;
+    const r = sectionRef.current.getBoundingClientRect();
+    mouseX.set(e.clientX - (r.left + r.width  / 2));
+    mouseY.set(e.clientY - (r.top  + r.height / 2));
   };
 
+  const handleMouseEnter = useCallback(() => {
+    // Only auto-play muted preview if user hasn't clicked to unmute
+    if (!soundOnRef.current) {
+      playMutedFromStart();
+    }
+  }, [playMutedFromStart]);
+
+  const handleMouseLeave = useCallback(() => {
+    mouseX.set(0);
+    mouseY.set(0);
+    // Only reset if still in muted preview mode (not if user clicked for sound)
+    if (!soundOnRef.current) {
+      pauseAndReset();
+    }
+  }, [pauseAndReset]);
+
+  // ── Styling helpers ───────────────────────────────────────────────────────
   const tr = (d = 0) =>
     `opacity 0.9s ${d}s cubic-bezier(0.22,1,0.36,1), transform 0.9s ${d}s cubic-bezier(0.22,1,0.36,1)`;
-
-  /* ── Phone dimensions ── */
-  const W = 'min(92vw, 860px)';          // phone outer width
-  const FRAME = 'min(1.8vw, 14px)';      // orange frame thickness
-  const OUTER_R = 'min(7vw, 58px)';      // outer corner radius
-  const INNER_R = 'min(6vw, 48px)';      // screen corner radius
-
-  /* ── Desert Titanium copper gradient ── */
-  const copperGrad = `
-    linear-gradient(
-      170deg,
-      #e8924a 0%,
-      #c8681a 18%,
-      #9e4a0a 35%,
-      #c97530 52%,
-      #b8590e 68%,
-      #e09040 82%,
-      #c06820 100%
-    )
-  `;
+  const W = 'min(92vw, 860px)';
 
   return (
     <section
       ref={sectionRef}
       id="intro-video"
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{
         width: '100%',
         background: 'var(--bg, #080808)',
@@ -113,139 +153,166 @@ const IntroVideo = () => {
         transition: tr(0.08),
       }}>
         Creative Process
-        <span style={{ color: 'rgba(255,255,255,0.35)', display: 'block' }}>
-          In Motion
-        </span>
+        <span style={{ color: 'rgba(255,255,255,0.35)', display: 'block' }}>In Motion</span>
       </h2>
 
       {/* ══ Phone mockup wrapper ══════════════════════════════════════════ */}
-      <div
-        onClick={handleClick}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85, y: 48 }}
+        animate={inView ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.85, y: 48 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
         style={{
-          opacity: inView ? 1 : 0,
-          transform: inView
-            ? 'scale(1) translateY(0) perspective(1200px) rotateY(0deg)'
-            : 'scale(0.85) translateY(48px)',
-          transition: tr(0.14),
           position: 'relative',
           width: W,
-          marginTop: '-21.5%',  /* Crop the empty transparent padding vertically */
+          marginTop: '-21.5%',
           marginBottom: '-21.5%',
-          cursor: 'pointer',
           userSelect: 'none',
+          perspective: 1500,
+          transformStyle: 'preserve-3d',
         }}
       >
-        {/* Mockup PNG Image */}
-        <img
-          src="/phone_mockup_clean.png"
-          alt="Phone Mockup"
+        {/* Ground shadow */}
+        <motion.div
+          animate={inView
+            ? { scale: [0.94, 1.05, 0.94], opacity: [0.42, 0.22, 0.42] }
+            : { scale: 0.94, opacity: 0.42 }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           style={{
-            width: '100%',
-            height: 'auto',
-            display: 'block',
-            pointerEvents: 'none',
+            position: 'absolute', top: '73.2%', left: '8%', right: '8%', height: '32px',
+            background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 55%, transparent 80%)',
+            filter: 'blur(20px)', zIndex: 1, pointerEvents: 'none', x: shadowX,
           }}
         />
 
-        {/* Video Screen container — positioned exactly over the mockup screen */}
-        <div style={{
-          position: 'absolute',
-          left: '6.84%',
-          top: '28.81%',
-          width: '86.33%',
-          height: '42.38%',
-          borderRadius: '4.8% / 9.8%', /* Matches the mockup screen corner radius exactly */
-          overflow: 'hidden',
-          background: '#000',
-          zIndex: 2,
-        }}>
-          {/* Video element */}
-          <video
-            ref={videoRef}
-            src="/intro_video.mp4"
-            muted
-            loop
-            playsInline
-            autoPlay
-            preload="auto"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center center',
-              display: 'block',
-              pointerEvents: 'none',
-              transform: 'scale(1.08) translate(-0.5%, -0.5%)', /* Scale and shift to hide watermark in the rounded corner clip */
-            }}
-          />
-
-          {/* Dynamic Island overlay */}
-          <div style={{
-            position: 'absolute',
-            left: '1.36%',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '3.62%',
-            height: '25.34%',
-            background: '#000',
-            borderRadius: '999px',
-            zIndex: 3,
-            boxShadow: '0 0 2px rgba(0,0,0,0.6)',
-          }} />
-
-          {/* Subtle glass reflection on screen */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(160deg, rgba(255,255,255,0.05) 0%, transparent 40%)',
-            pointerEvents: 'none',
-            zIndex: 4,
-          }} />
-
-          {/* Muted icon */}
-          <div style={{
-            position: 'absolute',
-            bottom: 12,
-            right: 14,
-            zIndex: 5,
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.22)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: soundOn ? 0 : (inView ? 1 : 0),
-            transition: 'opacity 0.5s',
-            pointerEvents: 'none',
+        {/* Floating container */}
+        <motion.div
+          animate={inView ? { y: [0, -14, 0] } : { y: 0 }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ position: 'relative', width: '100%', zIndex: 2, transformStyle: 'preserve-3d' }}
+        >
+          {/* 3D tilt */}
+          <motion.div style={{
+            position: 'relative', width: '100%', transformStyle: 'preserve-3d',
+            rotateX: tiltX, rotateY: tiltY,
           }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-              <path d="M11 5L6 9H2v6h4l5 4V5z" fill="rgba(255,255,255,0.85)"/>
-              <line x1="22" y1="9" x2="16" y2="15" stroke="rgba(255,255,255,0.85)" strokeWidth="2.5" strokeLinecap="round"/>
-              <line x1="16" y1="9" x2="22" y2="15" stroke="rgba(255,255,255,0.85)" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
-          </div>
-        </div>
+            {/* Mockup PNG */}
+            <img
+              src="/phone_mockup_clean.png"
+              alt="Phone Mockup"
+              style={{ width: '100%', height: 'auto', display: 'block', pointerEvents: 'none' }}
+            />
 
-      </div>{/* /phone wrapper */}
+            {/* Screen container */}
+            <div
+              onClick={handleClick}
+              style={{
+                position: 'absolute',
+                left: '6.84%', top: '28.81%', width: '86.33%', height: '42.38%',
+                borderRadius: '4.8% / 9.8%',
+                overflow: 'hidden',
+                background: '#000',
+                zIndex: 2,
+                WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+                clipPath: 'inset(0% round 4.8% / 9.8%)',
+                transform: 'translate3d(0, 0, 0)',
+                willChange: 'transform',
+                cursor: 'pointer',
+              }}
+            >
+              <video
+                ref={videoRef}
+                src="/intro_video.mp4"
+                muted
+                loop
+                playsInline
+                preload="auto"
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover', objectPosition: 'center center',
+                  display: 'block', pointerEvents: 'none',
+                  transform: 'scale(1.08) translate(-0.5%, -0.5%)',
+                }}
+              />
+
+              {/* Dynamic Island */}
+              <div style={{
+                position: 'absolute', left: '1.36%', top: '50%',
+                transform: 'translateY(-50%)',
+                width: '3.62%', height: '25.34%',
+                background: '#000', borderRadius: '999px',
+                zIndex: 3, boxShadow: '0 0 2px rgba(0,0,0,0.6)',
+              }} />
+
+              {/* Glass glare */}
+              <motion.div style={{
+                position: 'absolute', inset: '-20%',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 30%, transparent 60%, rgba(255,255,255,0.02) 100%)',
+                pointerEvents: 'none', zIndex: 4, x: glareX, y: glareY,
+              }} />
+
+              {/* ── Mute badge — always visible, covers watermark ─────────── */}
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                zIndex: 6,
+                /* large enough to fully blot out any bottom-right watermark */
+                width: 'clamp(56px, 9%, 72px)',
+                height: 'clamp(56px, 9%, 72px)',
+                background:
+                  'radial-gradient(circle at 60% 60%, rgba(10,10,20,0.96) 0%, rgba(0,0,0,0.88) 100%)',
+                backdropFilter: 'blur(14px) saturate(1.4)',
+                WebkitBackdropFilter: 'blur(14px) saturate(1.4)',
+                borderTopLeftRadius: '50%',
+                border: '1.5px solid rgba(255,255,255,0.13)',
+                borderBottom: 'none',
+                borderRight: 'none',
+                boxShadow:
+                  'inset 0 1px 0 rgba(255,255,255,0.08), 0 -2px 20px rgba(0,0,0,0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+                /* always visible — no opacity transition */
+                opacity: 1,
+              }}>
+                {/* Bold muted speaker icon */}
+                <svg
+                  width="28" height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  style={{ display: 'block', marginTop: '6px', marginLeft: '6px' }}
+                >
+                  {/* Speaker body */}
+                  <path
+                    d="M11 5L6 9H2v6h4l5 4V5z"
+                    fill="rgba(255,255,255,0.9)"
+                    stroke="rgba(255,255,255,0.9)"
+                    strokeWidth="0.5"
+                    strokeLinejoin="round"
+                  />
+                  {/* Bold X (muted) */}
+                  <line x1="22" y1="9" x2="16" y2="15" stroke="rgba(255,255,255,0.95)" strokeWidth="3" strokeLinecap="round" />
+                  <line x1="16" y1="9" x2="22" y2="15" stroke="rgba(255,255,255,0.95)" strokeWidth="3" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Caption */}
       <p style={{
         fontFamily: "'Outfit',sans-serif",
         fontSize: 'clamp(12px,1.1vw,14px)',
         color: 'rgba(255,255,255,0.22)',
-        margin: '28px 0 0',
-        letterSpacing: '0.03em',
-        textAlign: 'center',
+        margin: '28px 0 0', letterSpacing: '0.03em', textAlign: 'center',
         opacity: inView ? 1 : 0,
         transform: inView ? 'none' : 'translateY(12px)',
         transition: tr(0.44),
       }}>
-        Click to unmute · A glimpse into how I work
+        Hover to preview · Click to play
       </p>
-
     </section>
   );
 };
