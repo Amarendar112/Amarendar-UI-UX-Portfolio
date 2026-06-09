@@ -40,16 +40,6 @@ const IntroVideo = () => {
     }
   }, [inView, isHovered]);
 
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid) return;
-    vid.muted = isMuted;
-    if (!isMuted) {
-      vid.volume = 1;
-      vid.play().catch(() => {});
-    }
-  }, [isMuted]);
-
   const handleMouseMove = (e) => {
     if (!sectionRef.current) return;
     const r = sectionRef.current.getBoundingClientRect();
@@ -68,6 +58,16 @@ const IntroVideo = () => {
   const toggleSound = (e) => {
     e.stopPropagation();
     e.preventDefault();
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (isMuted) {
+      vid.muted = false;
+      vid.volume = 1;
+      vid.play().catch(() => {});
+    } else {
+      vid.muted = true;
+      vid.volume = 0;
+    }
     setIsMuted(prev => !prev);
   };
 
