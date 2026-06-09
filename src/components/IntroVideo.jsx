@@ -67,30 +67,54 @@ const IntroVideo = () => {
     everPlayedRef.current = false;
   }, []);
 
-  // ── Screen click: toggle mute/unmute ─────────────────────────────────────
+  // ── Initialize video muted via JS on mount (NOT via HTML attribute) ────────
+  // Using the HTML `muted` attribute locks the element and prevents JS unmuting.
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.muted  = true;
+    vid.volume = 0;
+  }, []);
+
+  // ── Mute toggle — MUST happen synchronously inside click event ───────────
   const handleClick = useCallback(() => {
     const vid = videoRef.current;
     if (!vid) return;
 
     if (!soundOnRef.current) {
-      // ⚠️ Must unmute synchronously inside click handler (browser policy)
-      vid.currentTime = everPlayedRef.current ? vid.currentTime : 0;
-      vid.muted  = false;
-      vid.volume = 0;
-      vid.play().then(() => {
+      // ── UNMUTE ──────────────────────────────────────────────────────────
+      // Browser autoplay policy: muted=false MUST be set synchronously here,
+      // inside the trusted click event. Never defer to .then().
+      if (!everPlayedRef.current) vid.currentTime = 0;
+      vid.muted  = false;   // synchronous — browser allows this in click handler
+      vid.volume = 0;       // start silent, fade will ramp up
+
+      const playPromise = vid.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            fadeInAudio(vid, 600);      // ramp volume 0 → 1 over 600 ms
+            soundOnRef.current    = true;
+            everPlayedRef.current = true;
+            setSoundOn(true);
+          })
+          .catch(() => {
+            // Browser blocked play — revert to safe muted state
+            vid.muted  = true;
+            vid.volume = 0;
+          });
+      } else {
+        // Older browsers — no promise returned, assume play started
         fadeInAudio(vid, 600);
         soundOnRef.current    = true;
         everPlayedRef.current = true;
         setSoundOn(true);
-      }).catch(() => {
-        vid.muted  = true;
-        vid.volume = 0;
-      });
+      }
     } else {
-      // Mute again
+      // ── MUTE ──────────────────────────────────────────────────────────
       if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
-      vid.muted  = true;
       vid.volume = 0;
+      vid.muted  = true;
       soundOnRef.current = false;
       setSoundOn(false);
     }
@@ -262,7 +286,9 @@ const IntroVideo = () => {
               <video
                 ref={videoRef}
                 src="/intro_video.mp4"
-                muted
+                // ⚠️ Do NOT add `muted` attribute here — it locks the element
+                // at the browser DOM level and prevents JS from unmuting it.
+                // Muting is controlled entirely via videoRef.current.muted in JS.
                 loop
                 playsInline
                 preload="auto"
@@ -290,35 +316,21 @@ const IntroVideo = () => {
                 pointerEvents: 'none', zIndex: 4, x: glareX, y: glareY,
               }} />
 
-              {/* ══ WATERMARK COVER + MUTE/UNMUTE BUTTON ══════════════════════
-                  Sits flush at bottom-right corner — same spot as Gemini ✦ mark.
-                  Large opaque black square covers the corner entirely, then the
-                  circular glass button is centred on top of it.
-              ════════════════════════════════════════════════════════════════ */}
+              {/* ══ MUTE/UNMUTE BUTTON — covers Gemini ✦ watermark ════════ */}
 
-              {/* Solid black corner block — guarantees watermark is hidden */}
-              <div style={{
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                width: '22%',
-                height: '38%',
-                background: '#000',
-                zIndex: 7,
-                pointerEvents: 'none',
-              }} />
-
-              {/* Circular glass mute/unmute button — centred over the black block */}
               <button
                 onClick={handleMuteToggle}
                 title={soundOn ? 'Mute video' : 'Unmute video'}
                 style={{
                   position: 'absolute',
-                  bottom: '6%',
-                  right: '3%',
+                  /* Gemini watermark sits at the very bottom-right corner of the video.
+                     Position this button directly on top of it. */
+                  bottom: '5%',
+                  right: '2%',
                   zIndex: 8,
-                  width: 'clamp(32px, 9.5%, 48px)',
-                  height: 'clamp(32px, 9.5%, 48px)',
+                  /* Large enough to fully cover the sparkle watermark */
+                  width: 'clamp(36px, 11%, 52px)',
+                  height: 'clamp(36px, 11%, 52px)',
                   borderRadius: '50%',
                   /* Apple-style dark glass */
                   background: 'radial-gradient(circle at 38% 30%, rgba(75,75,90,0.75) 0%, rgba(8,8,14,0.94) 72%)',
