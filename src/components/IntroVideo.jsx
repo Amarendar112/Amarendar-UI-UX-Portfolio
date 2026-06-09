@@ -250,50 +250,67 @@ const IntroVideo = () => {
                 pointerEvents: 'none', zIndex: 4, x: glareX, y: glareY,
               }} />
 
-              {/* ── Mute badge — always visible, covers watermark ─────────── */}
+              {/* ── Mute badge — circular glassmorphism, always visible, covers watermark ── */}
               <div style={{
                 position: 'absolute',
-                bottom: 0,
-                right: 0,
+                bottom: '8%',
+                right: '6%',
                 zIndex: 6,
-                /* large enough to fully blot out any bottom-right watermark */
-                width: 'clamp(56px, 9%, 72px)',
-                height: 'clamp(56px, 9%, 72px)',
-                background:
-                  'radial-gradient(circle at 60% 60%, rgba(10,10,20,0.96) 0%, rgba(0,0,0,0.88) 100%)',
-                backdropFilter: 'blur(14px) saturate(1.4)',
-                WebkitBackdropFilter: 'blur(14px) saturate(1.4)',
-                borderTopLeftRadius: '50%',
-                border: '1.5px solid rgba(255,255,255,0.13)',
-                borderBottom: 'none',
-                borderRight: 'none',
-                boxShadow:
-                  'inset 0 1px 0 rgba(255,255,255,0.08), 0 -2px 20px rgba(0,0,0,0.6)',
+                /* Circle large enough to cover any bottom-right watermark */
+                width: 'clamp(44px, 11%, 58px)',
+                height: 'clamp(44px, 11%, 58px)',
+                borderRadius: '50%',
+                /* Deep glass — matches reference photo dark background */
+                background: 'radial-gradient(circle at 38% 32%, rgba(60,60,75,0.72) 0%, rgba(12,12,18,0.92) 70%)',
+                backdropFilter: 'blur(18px) saturate(1.6) brightness(0.9)',
+                WebkitBackdropFilter: 'blur(18px) saturate(1.6) brightness(0.9)',
+                /* Thin white border + top-highlight arc (Apple-style) */
+                border: '1px solid rgba(255,255,255,0.22)',
+                boxShadow: [
+                  'inset 0 1.5px 2px rgba(255,255,255,0.18)',   /* top gloss arc */
+                  'inset 0 -1px 2px rgba(0,0,0,0.4)',            /* bottom inner shadow */
+                  '0 6px 24px rgba(0,0,0,0.65)',                 /* outer drop shadow */
+                  '0 2px 6px rgba(0,0,0,0.4)',
+                ].join(', '),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 pointerEvents: 'none',
-                /* always visible — no opacity transition */
                 opacity: 1,
+                overflow: 'hidden',
               }}>
-                {/* Bold muted speaker icon */}
+                {/* Subtle top-left gloss shimmer */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-30%', left: '-15%',
+                  width: '70%', height: '60%',
+                  background: 'radial-gradient(ellipse at 40% 40%, rgba(255,255,255,0.12) 0%, transparent 75%)',
+                  borderRadius: '50%',
+                  pointerEvents: 'none',
+                }} />
+
+                {/* Speaker with sound-waves icon — 68% of circle */}
                 <svg
-                  width="28" height="28"
+                  width="65%" height="65%"
                   viewBox="0 0 24 24"
                   fill="none"
-                  style={{ display: 'block', marginTop: '6px', marginLeft: '6px' }}
+                  style={{ display: 'block', position: 'relative', zIndex: 1 }}
                 >
-                  {/* Speaker body */}
+                  {/* Speaker body — solid fill */}
                   <path
-                    d="M11 5L6 9H2v6h4l5 4V5z"
-                    fill="rgba(255,255,255,0.9)"
-                    stroke="rgba(255,255,255,0.9)"
-                    strokeWidth="0.5"
-                    strokeLinejoin="round"
+                    d="M3 9v6h4l5 5V4L7 9H3z"
+                    fill="white"
                   />
-                  {/* Bold X (muted) */}
-                  <line x1="22" y1="9" x2="16" y2="15" stroke="rgba(255,255,255,0.95)" strokeWidth="3" strokeLinecap="round" />
-                  <line x1="16" y1="9" x2="22" y2="15" stroke="rgba(255,255,255,0.95)" strokeWidth="3" strokeLinecap="round" />
+                  {/* Inner sound wave */}
+                  <path
+                    d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
+                    fill="white"
+                  />
+                  {/* Outer sound wave */}
+                  <path
+                    d="M19 12c0-3.53-2.04-6.58-5-8.05v2.2c1.84 1.32 3 3.41 3 5.85 0 2.44-1.16 4.53-3 5.85v2.2c2.96-1.47 5-4.52 5-8.05z"
+                    fill="white"
+                  />
                 </svg>
               </div>
             </div>
