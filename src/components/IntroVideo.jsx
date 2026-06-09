@@ -3,20 +3,24 @@ import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 /* ─────────────────────────────────────────────────────────────────────────
    IntroVideo
-   · Hover section  → plays muted preview
-   · Hover out      → pauses + resets (only if preview mode)
-   · Scroll away    → pauses + resets
-   · Always muted   → no audio output
+   · Hover section  → plays muted preview from beginning
+   · Click screen   → toggles mute/unmute (audio fades in on first unmute)
+   · Mute button    → always visible, covers Gemini watermark at bottom-right
+   · Hover out      → pauses + resets if still in muted preview mode
+   · Scroll away    → pauses + resets to 0
    ───────────────────────────────────────────────────────────────────────── */
 
 const IntroVideo = () => {
-  const sectionRef  = useRef(null);
-  const videoRef    = useRef(null);
-  const fadeRafRef  = useRef(null);    // cancel any running loops
+  const sectionRef    = useRef(null);
+  const videoRef      = useRef(null);
+  const soundOnRef    = useRef(false);   // track unmuted state without re-renders
+  const fadeRafRef    = useRef(null);    // cancel any running audio-fade loop
+  const everPlayedRef = useRef(false);   // whether user has ever clicked to play with sound
 
-  const [inView, setInView] = useState(false);
+  const [inView,  setInView]  = useState(false);
+  const [soundOn, setSoundOn] = useState(false);
 
-  // ── Motion values (declared FIRST — used in handlers below) ──────────────
+  // ── Motion values ─────────────────────────────────────────────────────────
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -26,10 +30,24 @@ const IntroVideo = () => {
   const glareX  = useSpring(useTransform(mouseX, [-500, 500], [-30, 30 ]), { stiffness: 85, damping: 22 });
   const glareY  = useSpring(useTransform(mouseY, [-350, 350], [-20, 20 ]), { stiffness: 85, damping: 22 });
 
+  // ── Audio fade helper ─────────────────────────────────────────────────────
+  const fadeInAudio = useCallback((vid, durationMs = 600) => {
+    if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
+    const start = performance.now();
+    const step = (now) => {
+      if (!vid || vid.paused) return;
+      const t = Math.min((now - start) / durationMs, 1);
+      vid.volume = t;
+      if (t < 1) fadeRafRef.current = requestAnimationFrame(step);
+    };
+    fadeRafRef.current = requestAnimationFrame(step);
+  }, []);
+
   // ── Video actions ─────────────────────────────────────────────────────────
   const playMutedFromStart = useCallback(() => {
     const vid = videoRef.current;
     if (!vid) return;
+    if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
     vid.volume      = 0;
     vid.muted       = true;
     vid.currentTime = 0;
@@ -39,18 +57,50 @@ const IntroVideo = () => {
   const pauseAndReset = useCallback(() => {
     const vid = videoRef.current;
     if (!vid) return;
+    if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
     vid.pause();
     vid.currentTime = 0;
-    vid.muted  = true;
-    vid.volume = 0;
+    vid.muted       = true;
+    vid.volume      = 0;
+    soundOnRef.current = false;
+    setSoundOn(false);
+    everPlayedRef.current = false;
   }, []);
 
+  // ── Screen click: toggle mute/unmute ─────────────────────────────────────
   const handleClick = useCallback(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    // Always stays muted — toggle play/pause only
-    vid.paused ? vid.play().catch(() => {}) : vid.pause();
-  }, []);
+
+    if (!soundOnRef.current) {
+      // ⚠️ Must unmute synchronously inside click handler (browser policy)
+      vid.currentTime = everPlayedRef.current ? vid.currentTime : 0;
+      vid.muted  = false;
+      vid.volume = 0;
+      vid.play().then(() => {
+        fadeInAudio(vid, 600);
+        soundOnRef.current    = true;
+        everPlayedRef.current = true;
+        setSoundOn(true);
+      }).catch(() => {
+        vid.muted  = true;
+        vid.volume = 0;
+      });
+    } else {
+      // Mute again
+      if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
+      vid.muted  = true;
+      vid.volume = 0;
+      soundOnRef.current = false;
+      setSoundOn(false);
+    }
+  }, [fadeInAudio]);
+
+  // ── Mute button click (separate from screen click) ────────────────────────
+  const handleMuteToggle = useCallback((e) => {
+    e.stopPropagation(); // don't bubble to screen click
+    handleClick();
+  }, [handleClick]);
 
   // ── Intersection Observer ─────────────────────────────────────────────────
   useEffect(() => {
@@ -59,9 +109,7 @@ const IntroVideo = () => {
     const obs = new IntersectionObserver(
       ([entry]) => {
         setInView(entry.isIntersecting);
-        if (!entry.isIntersecting) {
-          pauseAndReset();
-        }
+        if (!entry.isIntersecting) pauseAndReset();
       },
       { threshold: 0.15 }
     );
@@ -69,11 +117,9 @@ const IntroVideo = () => {
     return () => obs.disconnect();
   }, [pauseAndReset]);
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
-    return () => {
-      if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current);
-    };
+    return () => { if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current); };
   }, []);
 
   // ── Mouse handlers ────────────────────────────────────────────────────────
@@ -85,19 +131,13 @@ const IntroVideo = () => {
   };
 
   const handleMouseEnter = useCallback(() => {
-    // Only auto-play muted preview if user hasn't clicked to unmute
-    if (!soundOnRef.current) {
-      playMutedFromStart();
-    }
+    if (!soundOnRef.current) playMutedFromStart();
   }, [playMutedFromStart]);
 
   const handleMouseLeave = useCallback(() => {
     mouseX.set(0);
     mouseY.set(0);
-    // Only reset if still in muted preview mode (not if user clicked for sound)
-    if (!soundOnRef.current) {
-      pauseAndReset();
-    }
+    if (!soundOnRef.current) pauseAndReset();
   }, [pauseAndReset]);
 
   // ── Styling helpers ───────────────────────────────────────────────────────
@@ -250,69 +290,103 @@ const IntroVideo = () => {
                 pointerEvents: 'none', zIndex: 4, x: glareX, y: glareY,
               }} />
 
-              {/* ── Mute badge — circular glassmorphism, always visible, covers watermark ── */}
+              {/* ══ WATERMARK COVER + MUTE/UNMUTE BUTTON ══════════════════════
+                  Sits flush at bottom-right corner — same spot as Gemini ✦ mark.
+                  Large opaque black square covers the corner entirely, then the
+                  circular glass button is centred on top of it.
+              ════════════════════════════════════════════════════════════════ */}
+
+              {/* Solid black corner block — guarantees watermark is hidden */}
               <div style={{
                 position: 'absolute',
-                bottom: '8%',
-                right: '6%',
-                zIndex: 6,
-                /* Circle large enough to cover any bottom-right watermark */
-                width: 'clamp(44px, 11%, 58px)',
-                height: 'clamp(44px, 11%, 58px)',
-                borderRadius: '50%',
-                /* Deep glass — matches reference photo dark background */
-                background: 'radial-gradient(circle at 38% 32%, rgba(60,60,75,0.72) 0%, rgba(12,12,18,0.92) 70%)',
-                backdropFilter: 'blur(18px) saturate(1.6) brightness(0.9)',
-                WebkitBackdropFilter: 'blur(18px) saturate(1.6) brightness(0.9)',
-                /* Thin white border + top-highlight arc (Apple-style) */
-                border: '1px solid rgba(255,255,255,0.22)',
-                boxShadow: [
-                  'inset 0 1.5px 2px rgba(255,255,255,0.18)',   /* top gloss arc */
-                  'inset 0 -1px 2px rgba(0,0,0,0.4)',            /* bottom inner shadow */
-                  '0 6px 24px rgba(0,0,0,0.65)',                 /* outer drop shadow */
-                  '0 2px 6px rgba(0,0,0,0.4)',
-                ].join(', '),
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                bottom: 0,
+                right: 0,
+                width: '22%',
+                height: '38%',
+                background: '#000',
+                zIndex: 7,
                 pointerEvents: 'none',
-                opacity: 1,
-                overflow: 'hidden',
-              }}>
-                {/* Subtle top-left gloss shimmer */}
+              }} />
+
+              {/* Circular glass mute/unmute button — centred over the black block */}
+              <button
+                onClick={handleMuteToggle}
+                title={soundOn ? 'Mute video' : 'Unmute video'}
+                style={{
+                  position: 'absolute',
+                  bottom: '6%',
+                  right: '3%',
+                  zIndex: 8,
+                  width: 'clamp(32px, 9.5%, 48px)',
+                  height: 'clamp(32px, 9.5%, 48px)',
+                  borderRadius: '50%',
+                  /* Apple-style dark glass */
+                  background: 'radial-gradient(circle at 38% 30%, rgba(75,75,90,0.75) 0%, rgba(8,8,14,0.94) 72%)',
+                  backdropFilter: 'blur(20px) saturate(1.8) brightness(0.85)',
+                  WebkitBackdropFilter: 'blur(20px) saturate(1.8) brightness(0.85)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  boxShadow: [
+                    'inset 0 1.5px 2.5px rgba(255,255,255,0.22)',
+                    'inset 0 -1px 2px rgba(0,0,0,0.5)',
+                    '0 4px 20px rgba(0,0,0,0.7)',
+                    '0 1px 4px rgba(0,0,0,0.5)',
+                  ].join(', '),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  padding: 0,
+                  transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                  /* reset browser button styles */
+                  outline: 'none',
+                  WebkitAppearance: 'none',
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.12)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.95)'}
+                onMouseUp={e => e.currentTarget.style.transform = 'scale(1.12)'}
+              >
+                {/* Top-left gloss shimmer */}
                 <div style={{
                   position: 'absolute',
-                  top: '-30%', left: '-15%',
-                  width: '70%', height: '60%',
-                  background: 'radial-gradient(ellipse at 40% 40%, rgba(255,255,255,0.12) 0%, transparent 75%)',
+                  top: '-25%', left: '-10%',
+                  width: '65%', height: '55%',
+                  background: 'radial-gradient(ellipse, rgba(255,255,255,0.15) 0%, transparent 70%)',
                   borderRadius: '50%',
                   pointerEvents: 'none',
                 }} />
 
-                {/* Speaker with sound-waves icon — 68% of circle */}
+                {/* Icon: speaker with 2 waves (unmuted) OR muted X */}
                 <svg
-                  width="65%" height="65%"
+                  width="62%" height="62%"
                   viewBox="0 0 24 24"
                   fill="none"
                   style={{ display: 'block', position: 'relative', zIndex: 1 }}
                 >
-                  {/* Speaker body — solid fill */}
-                  <path
-                    d="M3 9v6h4l5 5V4L7 9H3z"
-                    fill="white"
-                  />
-                  {/* Inner sound wave */}
-                  <path
-                    d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
-                    fill="white"
-                  />
-                  {/* Outer sound wave */}
-                  <path
-                    d="M19 12c0-3.53-2.04-6.58-5-8.05v2.2c1.84 1.32 3 3.41 3 5.85 0 2.44-1.16 4.53-3 5.85v2.2c2.96-1.47 5-4.52 5-8.05z"
-                    fill="white"
-                  />
+                  {soundOn ? (
+                    /* ── UNMUTED: speaker + sound waves ── */
+                    <>
+                      <path d="M3 9v6h4l5 5V4L7 9H3z" fill="white" />
+                      <path
+                        d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"
+                        fill="white"
+                      />
+                      <path
+                        d="M19 12c0-3.53-2.04-6.58-5-8.05v2.2c1.84 1.32 3 3.41 3 5.85 0 2.44-1.16 4.53-3 5.85v2.2c2.96-1.47 5-4.52 5-8.05z"
+                        fill="white"
+                      />
+                    </>
+                  ) : (
+                    /* ── MUTED: speaker + X lines ── */
+                    <>
+                      <path d="M3 9v6h4l5 5V4L7 9H3z" fill="rgba(255,255,255,0.9)" />
+                      <line x1="23" y1="9" x2="17" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+                      <line x1="17" y1="9" x2="23" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+                    </>
+                  )}
                 </svg>
-              </div>
+              </button>
             </div>
           </motion.div>
         </motion.div>
@@ -328,7 +402,9 @@ const IntroVideo = () => {
         transform: inView ? 'none' : 'translateY(12px)',
         transition: tr(0.44),
       }}>
-        Hover to preview · Click to play
+        {soundOn
+          ? 'Click screen or 🔊 to mute · Playing with sound'
+          : 'Hover to preview · Click to play with sound'}
       </p>
     </section>
   );
