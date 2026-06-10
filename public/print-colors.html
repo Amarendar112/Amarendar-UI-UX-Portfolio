@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Print Mockup Colors</title>
+</head>
+<body style="background: #222; color: #fff; font-family: sans-serif; padding: 20px;">
+  <h2>Color Profile along Center Lines</h2>
+  <div id="output" style="font-family: monospace; font-size: 14px; white-space: pre-wrap; line-height: 1.4;">Analyzing...</div>
+  <canvas id="canvas" width="1024" height="1024" style="display: none;"></canvas>
+
+  <script>
+    const img = new Image();
+    img.src = '/phone_mockup_clean.png';
+    img.onload = () => {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, 1024, 1024);
+      const data = imgData.data;
+
+      const getPixel = (x, y) => {
+        const idx = (y * 1024 + x) * 4;
+        return { r: data[idx], g: data[idx+1], b: data[idx+2], a: data[idx+3] };
+      };
+
+      let out = "";
+
+      // Scan vertically along x = 512, from y = 240 to y = 320 (Top bezel area)
+      out += "=== VERTICAL SCAN (TOP BEZEL: x=512, y=240 to 320) ===\n";
+      for (let y = 240; y <= 320; y++) {
+        const p = getPixel(512, y);
+        out += `y=${y}: R=${p.r}, G=${p.g}, B=${p.b}, A=${p.a}\n`;
+      }
+
+      // Scan vertically along x = 512, from y = 700 to y = 780 (Bottom bezel area)
+      out += "\n=== VERTICAL SCAN (BOTTOM BEZEL: x=512, y=700 to 780) ===\n";
+      for (let y = 700; y <= 780; y++) {
+        const p = getPixel(512, y);
+        out += `y=${y}: R=${p.r}, G=${p.g}, B=${p.b}, A=${p.a}\n`;
+      }
+
+      // Scan horizontally along y = 512, from x = 30 to x = 120 (Left bezel area)
+      out += "\n=== HORIZONTAL SCAN (LEFT BEZEL: y=512, x=30 to 120) ===\n";
+      for (let x = 30; x <= 120; x++) {
+        const p = getPixel(x, 512);
+        out += `x=${x}: R=${p.r}, G=${p.g}, B=${p.b}, A=${p.a}\n`;
+      }
+
+      // Scan horizontally along y = 512, from x = 900 to x = 990 (Right bezel area)
+      out += "\n=== HORIZONTAL SCAN (RIGHT BEZEL: y=512, x=900 to 990) ===\n";
+      for (let x = 900; x <= 990; x++) {
+        const p = getPixel(x, 512);
+        out += `x=${x}: R=${p.r}, G=${p.g}, B=${p.b}, A=${p.a}\n`;
+      }
+
+      document.getElementById('output').innerText = out;
+    };
+  </script>
+</body>
+</html>

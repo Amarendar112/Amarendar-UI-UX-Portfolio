@@ -8,6 +8,7 @@ const IntroVideo = () => {
   const [inView, setInView] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -16,6 +17,12 @@ const IntroVideo = () => {
   const shadowX = useSpring(useTransform(mouseX, [-500, 500], [12, -12]), { stiffness: 85, damping: 22 });
   const glareX = useSpring(useTransform(mouseX, [-500, 500], [-30, 30]), { stiffness: 85, damping: 22 });
   const glareY = useSpring(useTransform(mouseY, [-350, 350], [-20, 20]), { stiffness: 85, damping: 22 });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -206,8 +213,10 @@ const IntroVideo = () => {
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
                 style={{
                   position: 'absolute',
-                  bottom: '2%', right: '1.5%',
-                  width: '48px', height: '48px',
+                  bottom: isMobile ? '2%' : '-1%',
+                  right: isMobile ? '2%' : '1.5%',
+                  width: isMobile ? '28px' : '48px',
+                  height: isMobile ? '28px' : '48px',
                   borderRadius: '50%',
                   border: 'none',
                   background: 'rgba(0,0,0,0.6)',
@@ -226,13 +235,13 @@ const IntroVideo = () => {
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.55)'; e.currentTarget.style.transform = 'scale(1)'; }}
               >
                 {!isMuted ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <svg width={isMobile ? 13 : 20} height={isMobile ? 13 : 20} viewBox="0 0 24 24" fill="none">
                     <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="white"/>
                     <path d="M15.54 8.46C16.48 9.4 17.05 10.65 17.05 12C17.05 13.35 16.48 14.6 15.54 15.54" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
                     <path d="M19.07 4.93C20.94 6.8 22.01 9.33 22.01 12C22.01 14.67 20.94 17.2 19.07 19.07" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
                   </svg>
                 ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <svg width={isMobile ? 13 : 20} height={isMobile ? 13 : 20} viewBox="0 0 24 24" fill="none">
                     <path d="M11 5L6 9H2V15H6L11 19V5Z" fill="white"/>
                     <line x1="23" y1="9" x2="17" y2="15" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
                     <line x1="17" y1="9" x2="23" y2="15" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>

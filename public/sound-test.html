@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sound Test</title>
+  <style>
+    body { background: #111; color: #fff; font-family: monospace; padding: 40px; }
+    video { width: 400px; display: block; margin: 20px 0; border: 2px solid #333; }
+    button { padding: 16px 32px; font-size: 18px; margin: 10px 5px; cursor: pointer; background: #2a2; color: #fff; border: none; border-radius: 8px; }
+    button:hover { background: #3b3; }
+    #log { background: #000; padding: 16px; border-radius: 8px; white-space: pre-wrap; font-size: 13px; max-height: 400px; overflow-y: auto; margin-top: 20px; }
+    .warn { color: #fa0; }
+    .err { color: #f44; }
+    .ok { color: #4f4; }
+  </style>
+</head>
+<body>
+  <h1>🔊 Video Sound Diagnostic</h1>
+  <p>Click the buttons below to test audio. Check the log at the bottom.</p>
+
+  <video id="vid" src="/intro_video.mp4" loop playsinline preload="auto"></video>
+
+  <div>
+    <button onclick="testPlayMuted()">1. Play Muted</button>
+    <button onclick="testUnmute()">2. Unmute (click this!)</button>
+    <button onclick="testForceVolume()">3. Force Volume=1</button>
+    <button onclick="testPause()">Stop</button>
+  </div>
+
+  <div id="log"></div>
+
+  <script>
+    const vid = document.getElementById('vid');
+    const logEl = document.getElementById('log');
+
+    function log(msg, cls = '') {
+      const line = document.createElement('div');
+      line.className = cls;
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function logState(label) {
+      log(`${label} → muted=${vid.muted}, volume=${vid.volume.toFixed(2)}, paused=${vid.paused}, readyState=${vid.readyState}, currentTime=${vid.currentTime.toFixed(2)}`);
+    }
+
+    // Initialize
+    vid.muted = true;
+    vid.volume = 0;
+
+    vid.addEventListener('loadedmetadata', () => {
+      log(`Video loaded: ${vid.videoWidth}x${vid.videoHeight}, duration=${vid.duration.toFixed(1)}s`);
+      // Check audio tracks
+      if (vid.audioTracks) {
+        log(`audioTracks.length = ${vid.audioTracks.length}`, vid.audioTracks.length > 0 ? 'ok' : 'err');
+      } else {
+        log('audioTracks API not available in this browser (normal for Chrome)', 'warn');
+      }
+      // Check via mozHasAudio / webkitAudioDecodedByteCount
+      if (typeof vid.mozHasAudio !== 'undefined') {
+        log(`mozHasAudio = ${vid.mozHasAudio}`, vid.mozHasAudio ? 'ok' : 'err');
+      }
+    });
+
+    // Monitor webkitAudioDecodedByteCount to confirm audio is actually decoding
+    setInterval(() => {
+      if (!vid.paused && typeof vid.webkitAudioDecodedByteCount !== 'undefined') {
+        const bytes = vid.webkitAudioDecodedByteCount;
+        if (bytes > 0) {
+          document.title = `Audio bytes: ${bytes}`;
+        }
+      }
+    }, 1000);
+
+    function testPlayMuted() {
+      vid.muted = true;
+      vid.volume = 0;
+      vid.currentTime = 0;
+      vid.play().then(() => {
+        log('✅ Muted play() succeeded', 'ok');
+        logState('After muted play');
+      }).catch(err => {
+        log(`❌ Muted play() FAILED: ${err.message}`, 'err');
+      });
+    }
+
+    function testUnmute() {
+      log('--- UNMUTE ATTEMPT (user gesture = click) ---', 'warn');
+      logState('Before unmute');
+
+      // Synchronously unmute
+      vid.muted = false;
+      vid.volume = 1.0;
+      log(`Set muted=false, volume=1.0`);
+      logState('After setting muted=false');
+
+      if (vid.paused) {
+        log('Video was paused, calling play()...');
+        vid.play().then(() => {
+          log('✅ Unmuted play() succeeded!', 'ok');
+          logState('After unmuted play');
+          checkAudioDecoding();
+        }).catch(err => {
+          log(`❌ Unmuted play() FAILED: ${err.message}`, 'err');
+        });
+      } else {
+        log('Video already playing, just unmuted it', 'ok');
+        logState('Current state');
+        checkAudioDecoding();
+      }
+    }
+
+    function testForceVolume() {
+      vid.muted = false;
+      vid.volume = 1.0;
+      logState('Force volume=1');
+      if (vid.paused) {
+        vid.play().then(() => log('Playing', 'ok')).catch(e => log('Play failed: ' + e.message, 'err'));
+      }
+      checkAudioDecoding();
+    }
+
+    function testPause() {
+      vid.pause();
+      vid.currentTime = 0;
+      vid.muted = true;
+      vid.volume = 0;
+      log('Stopped and reset');
+    }
+
+    function checkAudioDecoding() {
+      if (typeof vid.webkitAudioDecodedByteCount !== 'undefined') {
+        const initial = vid.webkitAudioDecodedByteCount;
+        setTimeout(() => {
+          const after = vid.webkitAudioDecodedByteCount;
+          if (after > initial) {
+            log(`✅ Audio IS decoding! (${initial} → ${after} bytes)`, 'ok');
+          } else {
+            log(`⚠️ Audio NOT decoding (stuck at ${after} bytes). Video may have silent/empty audio track.`, 'err');
+          }
+        }, 500);
+      } else {
+        log('webkitAudioDecodedByteCount not available, cannot verify audio decoding', 'warn');
+      }
+    }
+  </script>
+</body>
+</html>

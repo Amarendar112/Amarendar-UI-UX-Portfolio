@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Make Background Transparent</title>
+</head>
+<body style="background: #222; color: #fff; font-family: sans-serif; padding: 20px;">
+  <h2>Making phone_mockup.png transparent (with halo cleanup & watermark removal)...</h2>
+  <canvas id="canvas" width="1024" height="1024" style="border: 1px solid #444; max-width: 500px;"></canvas>
+  <div id="output" style="margin-top: 20px; font-family: monospace; font-size: 16px;">Processing...</div>
+
+  <script>
+    const img = new Image();
+    img.src = '/phone_mockup.png';
+    img.onload = () => {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, 1024, 1024);
+      const data = imgData.data;
+
+      // --- WATERMARK REMOVAL ---
+      // Clear the bottom right corner (from x=880 to 1024, and y=880 to 1024)
+      // to remove the Gemini sparkles watermark.
+      for (let y = 880; y < 1024; y++) {
+        for (let x = 880; x < 1024; x++) {
+          const idx = (y * 1024 + x) * 4;
+          data[idx] = 0;     // R
+          data[idx + 1] = 0; // G
+          data[idx + 2] = 0; // B
+          data[idx + 3] = 0; // A (Transparent)
+        }
+      }
+
+      // Visited map
+      const visited = new Uint8Array(1024 * 1024);
+
+      const getPixel = (x, y) => {
+        const idx = (y * 1024 + x) * 4;
+        return { r: data[idx], g: data[idx+1], b: data[idx+2], a: data[idx+3] };
+      };
+
+      const setPixelTransparent = (x, y) => {
+        const idx = (y * 1024 + x) * 4;
+        data[idx + 3] = 0; // Set alpha to 0
+      };
+
+      const isBackgroundPixel = (x, y) => {
+        const p = getPixel(x, y);
+        if (p.a === 0) return true; // Already transparent
+        
+        const isWhite = p.r > 220 && p.g > 220 && p.b > 220;
+        const isBlack = p.r < 40 && p.g < 40 && p.b < 40;
+        
+        return isWhite || isBlack;
+      };
+
+      // Flood-fill queue
+      const queue = [];
+      const pushToQueue = (x, y) => {
+        const idx = y * 1024 + x;
+        if (visited[idx] === 0) {
+          visited[idx] = 1;
+          queue.push((y << 16) | x);
+        }
+      };
+
+      // Start flood fill from the borders
+      for (let x = 0; x < 1024; x++) {
+        pushToQueue(x, 0);
+        pushToQueue(x, 1023);
+      }
+      for (let y = 0; y < 1024; y++) {
+        pushToQueue(0, y);
+        pushToQueue(1023, y);
+      }
+
+      let count = 0;
+      while (queue.length > 0) {
+        const curr = queue.shift();
+        const y = curr >> 16;
+        const x = curr & 0xffff;
+
+        if (isBackgroundPixel(x, y)) {
+          setPixelTransparent(x, y);
+          count++;
+
+          if (x > 0) pushToQueue(x - 1, y);
+          if (x < 1023) pushToQueue(x + 1, y);
+          if (y > 0) pushToQueue(x, y - 1);
+          if (y < 1023) pushToQueue(x, y + 1);
+        }
+      }
+
+      // --- HALO CLEANUP PASS ---
+      // Run 3 iterations of edge-cleanup to erode non-copper background artifacts
+      for (let iter = 0; iter < 3; iter++) {
+        const toClear = [];
+        for (let y = 1; y < 1023; y++) {
+          for (let x = 1; x < 1023; x++) {
+            const idx = (y * 1024 + x) * 4;
+            if (data[idx + 3] > 0) { // Opaque pixel
+              const hasTransparentNeighbor = 
+                data[((y - 1) * 1024 + x) * 4 + 3] === 0 ||
+                data[((y + 1) * 1024 + x) * 4 + 3] === 0 ||
+                data[(y * 1024 + (x - 1)) * 4 + 3] === 0 ||
+                data[(y * 1024 + (x + 1)) * 4 + 3] === 0;
+
+              if (hasTransparentNeighbor) {
+                const p = getPixel(x, y);
+                const isCopper = p.r > 75 && p.g > 40;
+                if (!isCopper) {
+                  toClear.push({ x, y });
+                }
+              }
+            }
+          }
+        }
+        toClear.forEach(p => setPixelTransparent(p.x, p.y));
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+
+      // Convert to base64
+      const base64 = canvas.toDataURL('image/png');
+
+      // Send to server to save
+      document.getElementById('output').innerText = 'Processed. Sending to server...';
+      fetch('http://localhost:3000/save-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 })
+      })
+      .then(res => res.text())
+      .then(text => {
+        document.getElementById('output').innerText = 'SUCCESS: Saved transparent mockup image!';
+        console.log('SAVE_SUCCESS:', text);
+      })
+      .catch(err => {
+        document.getElementById('output').innerText = 'ERROR sending to server: ' + err;
+        console.error('SAVE_ERROR:', err);
+      });
+    };
+  </script>
+</body>
+</html>
