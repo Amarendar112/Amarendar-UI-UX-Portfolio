@@ -192,6 +192,9 @@ const IntroVideo = () => {
                 loop
                 playsInline
                 preload="auto"
+                controlsList="nodownload nofullscreen noremoteplayback"
+                disablePictureInPicture
+                x-webkit-airplay="deny"
                 style={{
                   width: '100%', height: '100%',
                   objectFit: 'cover', objectPosition: 'center center',

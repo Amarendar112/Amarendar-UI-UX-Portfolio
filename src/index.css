@@ -992,3 +992,11 @@ img {
 .experience-cards-container::-webkit-scrollbar {
   display: none;
 }
+
+/* Hide native video controls (download, pip, fullscreen) on mobile */
+video::-webkit-media-controls {
+  display: none !important;
+}
+video::-webkit-media-controls-enclosure {
+  display: none !important;
+}
