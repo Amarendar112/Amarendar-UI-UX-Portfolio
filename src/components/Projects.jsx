@@ -54,6 +54,8 @@ const projects = [
     title: 'Healthcare | Doctor UI',
     description:
       'Empowering healthcare with innovative and accessible interface design. The system prioritis trust and clarity to connect patients and doctors digitally.',
+    caseStudyLink: '/CuraConnect_Case_Study.html',
+    caseStudyLabel: 'View Case Study',
     link: 'https://www.behance.net/gallery/208451819/Empowering-Healthcare-Innovative-Doctor-UI-Design/modules/1184015719',
     linkLabel: 'View Design',
     image: doctorUiImg,
@@ -187,15 +189,32 @@ const TiltCard = ({ project, index }) => {
           </span>
         </div>
         <p className="project-card__desc">{project.description}</p>
-        <a
-          href={project.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="project-card__link"
-        >
-          {project.linkLabel}
-          <ExternalLink size={12} />
-        </a>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '16px', position: 'relative', zIndex: 20 }}>
+          {project.caseStudyLink && (
+            <a
+              href={project.caseStudyLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="project-card__link"
+              style={{ position: 'relative', zIndex: 20, cursor: 'pointer' }}
+            >
+              {project.caseStudyLabel || 'View Case Study'}
+              <ExternalLink size={12} />
+            </a>
+          )}
+          {project.link && (
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="project-card__link"
+              style={{ position: 'relative', zIndex: 20, cursor: 'pointer' }}
+            >
+              {project.linkLabel}
+              <ExternalLink size={12} />
+            </a>
+          )}
+        </div>
       </div>
     </motion.div>
   );

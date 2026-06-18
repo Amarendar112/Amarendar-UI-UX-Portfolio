@@ -190,6 +190,8 @@ const IntroVideo = () => {
                 ref={videoRef}
                 src="/intro_video.mp4"
                 loop
+                muted={isMuted}
+                controls={false}
                 playsInline
                 preload="auto"
                 controlsList="nodownload nofullscreen noremoteplayback"
