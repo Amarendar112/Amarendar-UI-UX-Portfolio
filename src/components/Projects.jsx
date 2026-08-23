@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, ArrowUpRight, Layers } from 'lucide-react';
 import trenzlyImg from '../assets/trenzly-preview.webp';
 import joeSeraImg from '../assets/joe-sera-preview.webp';
 import zomatoImg from '../assets/zomato-redesign-preview.webp';
@@ -50,18 +50,6 @@ const projects = [
     tag: 'App Design',
   },
   {
-    id: 'doctor-ui',
-    title: 'Healthcare | Doctor UI',
-    description:
-      'Empowering healthcare with innovative and accessible interface design. The system prioritis trust and clarity to connect patients and doctors digitally.',
-    caseStudyLink: '/CuraConnect_Case_Study.html',
-    caseStudyLabel: 'View Case Study',
-    link: 'https://www.behance.net/gallery/208451819/Empowering-Healthcare-Innovative-Doctor-UI-Design/modules/1184015719',
-    linkLabel: 'View Design',
-    image: doctorUiImg,
-    tag: 'UI Design',
-  },
-  {
     id: 'zomato-redesign',
     title: 'Zomato Redesign',
     description:
@@ -70,6 +58,18 @@ const projects = [
     linkLabel: 'View Design',
     image: zomatoImg,
     tag: 'UX Design',
+  },
+  {
+    id: 'doctor-ui',
+    title: 'Healthcare | Doctor UI',
+    description:
+      'Empowering healthcare with innovative and accessible interface design. The system prioritises trust and clarity to connect patients and doctors digitally.',
+    caseStudyLink: 'https://doctor-appointment-case-study.vercel.app/',
+    caseStudyLabel: 'View Case Study',
+    link: 'https://www.behance.net/gallery/208451819/Empowering-Healthcare-Innovative-Doctor-UI-Design/modules/1184015719',
+    linkLabel: 'View Design',
+    image: doctorUiImg,
+    tag: 'UI Design',
   },
 ];
 
@@ -220,7 +220,95 @@ const TiltCard = ({ project, index }) => {
   );
 };
 
+/* ── Featured Split Card (Doctor UI) ─────────────── */
+const FeaturedCard = ({ project }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+      className={`featured-card ${hovered ? 'is-hovered' : ''}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* LEFT — Design Preview */}
+      <div className="featured-card__left">
+        <div className="featured-card__image-wrap">
+          <img
+            src={project.image}
+            alt={`${project.title} preview`}
+            className="featured-card__image"
+            style={{
+              transform: hovered ? 'scale(1.04)' : 'scale(1)',
+              transition: 'transform 0.6s cubic-bezier(0.4,0,0.2,1)',
+            }}
+          />
+          <div className="featured-card__image-overlay" />
+          {/* Design Link Badge */}
+          <a
+            href={project.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="featured-card__design-badge"
+          >
+            <Layers size={13} />
+            View Design
+            <ArrowUpRight size={12} />
+          </a>
+        </div>
+      </div>
+
+      {/* RIGHT — Case Study Info */}
+      <div className="featured-card__right">
+        <div className="featured-card__right-inner">
+          <div className="featured-card__meta">
+            <span className="chip" style={{ fontSize: '11px', padding: '3px 9px' }}>
+              {project.tag}
+            </span>
+            <span className="featured-card__badge">Featured Case Study</span>
+          </div>
+
+          <h3 className="featured-card__title">{project.title}</h3>
+
+          <p className="featured-card__desc">{project.description}</p>
+
+          <div className="featured-card__highlights">
+            <div className="featured-card__highlight-item">
+              <span className="featured-card__highlight-num">3</span>
+              <span className="featured-card__highlight-label">Core User Flows</span>
+            </div>
+            <div className="featured-card__highlight-item">
+              <span className="featured-card__highlight-num">40+</span>
+              <span className="featured-card__highlight-label">UI Screens</span>
+            </div>
+            <div className="featured-card__highlight-item">
+              <span className="featured-card__highlight-num">UX</span>
+              <span className="featured-card__highlight-label">Research Driven</span>
+            </div>
+          </div>
+
+          <a
+            href={project.caseStudyLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="featured-card__cta"
+          >
+            {project.caseStudyLabel || 'View Case Study'}
+            <ArrowUpRight size={16} />
+          </a>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 const Projects = () => {
+  const featuredProjects = projects.filter((p) => p.featured);
+  const gridProjects = projects.filter((p) => !p.featured);
+
   return (
     <section id="projects" className="section">
       <div className="container">
@@ -237,8 +325,14 @@ const Projects = () => {
           and let&apos;s collaborate.
         </p>
 
+        {/* Featured Split Cards */}
+        {featuredProjects.map((project) => (
+          <FeaturedCard key={project.id} project={project} />
+        ))}
+
+        {/* Regular Grid */}
         <div className="projects-grid">
-          {projects.map((project, i) => (
+          {gridProjects.map((project, i) => (
             <TiltCard key={project.id} project={project} index={i} />
           ))}
         </div>
