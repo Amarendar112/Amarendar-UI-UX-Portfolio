@@ -7,7 +7,6 @@ const IntroVideo = () => {
 
   const [inView, setInView] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
   const mouseX = useMotionValue(0);
@@ -35,17 +34,23 @@ const IntroVideo = () => {
     return () => obs.disconnect();
   }, []);
 
+  // Sync muted state imperatively — React's `muted` prop doesn't update after mount
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    if (inView && isHovered) {
+    vid.muted = isMuted;
+  }, [isMuted]);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (inView) {
       vid.play().catch(() => {});
     } else {
       vid.pause();
       vid.currentTime = 0;
-      setIsMuted(true);
     }
-  }, [inView, isHovered]);
+  }, [inView]);
 
   const handleMouseMove = (e) => {
     if (!sectionRef.current) return;
@@ -54,10 +59,7 @@ const IntroVideo = () => {
     mouseY.set(e.clientY - (r.top + r.height / 2));
   };
 
-  const handleMouseEnter = () => setIsHovered(true);
-
   const handleMouseLeave = () => {
-    setIsHovered(false);
     mouseX.set(0);
     mouseY.set(0);
   };
@@ -69,11 +71,9 @@ const IntroVideo = () => {
     if (!vid) return;
     if (isMuted) {
       vid.muted = false;
-      vid.volume = 1;
       vid.play().catch(() => {});
     } else {
       vid.muted = true;
-      vid.volume = 0;
     }
     setIsMuted(prev => !prev);
   };
@@ -87,7 +87,6 @@ const IntroVideo = () => {
       ref={sectionRef}
       id="intro-video"
       onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       style={{
         width: '100%',
@@ -190,7 +189,7 @@ const IntroVideo = () => {
                 ref={videoRef}
                 src="/intro_video.mp4"
                 loop
-                muted={isMuted}
+                muted
                 controls={false}
                 playsInline
                 preload="auto"
@@ -218,13 +217,13 @@ const IntroVideo = () => {
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
                 style={{
                   position: 'absolute',
-                  bottom: isMobile ? '-3%' : '-1%',
-                  right: isMobile ? '1%' : '1.5%',
-                  width: isMobile ? '22px' : '48px',
-                  height: isMobile ? '22px' : '48px',
+                  bottom: isMobile ? '2px' : '6px',
+                  right: isMobile ? '8px' : '14px',
+                  width: isMobile ? '36px' : '50px',
+                  height: isMobile ? '36px' : '50px',
                   borderRadius: '50%',
-                  border: 'none',
-                  background: 'rgba(0,0,0,0.6)',
+                  border: '1px solid rgba(255,255,255,0.28)',
+                  background: 'rgba(0,0,0,0.72)',
                   backdropFilter: 'blur(6px)',
                   WebkitBackdropFilter: 'blur(6px)',
                   display: 'flex',
@@ -275,7 +274,7 @@ const IntroVideo = () => {
       }}>
         {!isMuted
           ? String.fromCodePoint(0x1F50A) + ' Playing with sound · Click to mute'
-          : 'Hover to preview · Click to unmute'}
+          : 'Playing silently · Click to unmute'}
       </p>
     </section>
   );
